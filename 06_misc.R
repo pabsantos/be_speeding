@@ -170,7 +170,7 @@ tmap_save(tm = zoning_map, filename = glue("{output06}zoning_map.pdf"),
 
 # Participants address ----------------------------------------------------
 
-address <- read_excel("input/drivers_address.xlsx") %>% 
+address <- read_excel("input/address.xlsx") %>% 
   st_as_sf(coords = c("LONG", "LAT")) %>% 
   st_set_crs(4674)
 

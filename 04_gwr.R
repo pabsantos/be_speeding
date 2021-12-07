@@ -232,7 +232,7 @@ save_gwss_maps <- function(plot, names) {
             dpi = 300)
 }
 
-gwss_names <- c(glue("{output04}mean_map.png"), glue("{ouput04}sd_map.png"))
+gwss_names <- c(glue("{output04}mean_map.png"), glue("{output04}sd_map.png"))
 map2(gwss_maps, gwss_names, save_gwss_maps)
 
 # Plotting GWR results ----------------------------------------------------
