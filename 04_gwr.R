@@ -1,3 +1,5 @@
+output04 <- glue("{output}/04/")
+
 # Applying data arrangement criteria --------------------------------------
 
 taz_gwr <- taz %>% 
@@ -11,7 +13,9 @@ map_filter <- ggplot() +
   geom_sf(data = taz_gwr, lwd = 0.1, fill = "orange") +
   theme_void()
 
-save_var_maps(map_filter, names = "output/map_filter.png")
+ggsave(filename = glue("{output04}map_filter.png"), plot = map_filter,
+       width = 3, height = 3.5, device = "png", dpi = 300)
+
 
 # Checking co-linearity (Spearman) --------------------------------------
 
@@ -23,7 +27,7 @@ plot_spear <- taz_gwr %>%
          label_size = 2.5, label_round = 2, name = "Spearman Coefficient:",
          size = 2.5, legend.size = 7)
 
-ggsave(filename = "output/plot_spear.pdf",
+ggsave(filename = glue("{output04}plot_spear.pdf"),
        plot = plot_spear,
        device = "pdf",
        width = 4.5,
@@ -38,7 +42,7 @@ taz_sample <- taz_gwr %>%
   summarise_all(sum) %>% 
   as_tibble()
 
-write_csv(taz_sample, "output/final_sample_size.csv")
+write_csv(taz_sample, glue("{output04}final_sample_size.csv"))
 
 # Variable global summary -------------------------------------------------
 
@@ -56,7 +60,7 @@ taz_gs <- taz_gwr %>%
             `3q` = quantile(VALUE, 0.75),
             max = max(VALUE))
 
-write_csv(taz_gs, "output/taz_global_summary.csv")
+write_csv(taz_gs, glue("{output04}taz_global_summary.csv"))
 
 # GWR function ------------------------------------------------------------
 
@@ -179,7 +183,7 @@ calc_moran <- function(gwr_results) {
 
 mmc_results <- calc_moran(gwr_model_results)
 
-write_csv(mmc_results, "output/mmc_results.csv")
+write_csv(mmc_results, glue("{output04}mmc_results.csv"))
 
 # Selecting best model ----------------------------------------------------
 
@@ -228,7 +232,7 @@ save_gwss_maps <- function(plot, names) {
             dpi = 300)
 }
 
-gwss_names <- c("output/mean_map.png", "output/sd_map.png")
+gwss_names <- c(glue("{output04}mean_map.png"), glue("{ouput04}sd_map.png"))
 map2(gwss_maps, gwss_names, save_gwss_maps)
 
 # Plotting GWR results ----------------------------------------------------
@@ -249,7 +253,7 @@ make_gwr_maps <- function(var) {
 
 gwr_maps <- map(gwr_ind_var, make_gwr_maps)
 
-gwr_names <- paste("output/", gwr_ind_var, ".png", sep = "")
+gwr_names <- paste(output04, gwr_ind_var, ".png", sep = "")
 
 map2(gwr_maps, gwr_names, save_gwss_maps)
 
@@ -267,7 +271,7 @@ r2_map <- tm_shape(taz) +
             legend.title.size = 0.8, 
             legend.text.size = 0.6)
 
-save_gwss_maps(r2_map, "output/r2_map.png")
+save_gwss_maps(r2_map, glue("{output04}r2_map.png"))
 
 # Count positive and negative coefficients per TAZ and variable -----------
 
@@ -289,4 +293,4 @@ taz_results_table <- gwr_chosen_model[["SDF"]]@data %>%
   mutate(prop_pos = scales::percent(prop_pos),
          prop_neg = scales::percent(prop_neg))
 
-write_csv(taz_results_table, "output/taz_results_table.csv")
+write_csv(taz_results_table, glue("{output04}taz_results_table.csv"))

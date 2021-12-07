@@ -1,6 +1,8 @@
+output02 <- glue("{output}/02/")
+
 # Importing TAZ spatial data ----------------------------------------------
 
-taz <- st_read("input/taz.gpkg")
+taz <- st_read(glue("{input}/taz.gpkg"))
 
 ## Fixing columns
 taz <- taz %>% 
@@ -17,7 +19,7 @@ census_tract <- read_census_tract(code_tract = cod, year = 2010) %>%
   select(CODE_TRACT)
 
 ## Importing census data
-census_data <- read_csv("input/Basico_PR.csv") %>% 
+census_data <- read_csv(glue("{input}/Basico_PR.csv")) %>% 
   filter(`Nome_do_municipio` == "CURITIBA") %>% 
   rename(CODE_TRACT = Cod_setor,
          POPULATION = V002,
@@ -110,7 +112,7 @@ rm(ippuc_axis)
 
 # Density of intersections ------------------------------------------------
 
-intersection <- st_read("input/intersection.shp")
+intersection <- st_read(glue("{input}/intersection.shp"))
 
 taz_di <- intersection %>% 
   st_transform(crs = 31982) %>% 
@@ -129,7 +131,7 @@ rm(intersection)
 
 # Traffic signal density --------------------------------------------------
 
-traffic_signal <- st_read("input/traffic_lights.shp")
+traffic_signal <- st_read(glue("{input}/traffic_lights.shp"))
 
 taz_ts <- traffic_signal %>% 
   st_transform(crs = 31982) %>% 
@@ -148,7 +150,7 @@ rm(traffic_signal)
 
 # Density of commercial and services units ---------------------------------
 
-alvaras <- st_read("input/alvara_comercial_ATIVO.shp")
+alvaras <- st_read(glue("{input}/alvara_comercial_ATIVO.shp"))
 
 taz_units <- alvaras %>% 
   mutate(setor = str_sub(grupoativi,1,1)) %>% 
@@ -221,7 +223,7 @@ rm(taz_ldi)
 
 # Bus stop density --------------------------------------------------------
 
-bus_stops <- st_read("input/PONTO_DE_ONIBUS.shp")
+bus_stops <- st_read(glue("{input}/PONTO_DE_ONIBUS.shp"))
 
 taz_bsd <- bus_stops %>% 
   filter(CATEGORIA != "EXPRESSO" & CATEGORIA != "EXPRESSO LIGEIRÃO") %>% 
@@ -240,7 +242,7 @@ rm(bus_stops)
 
 # Density of speed cameras ------------------------------------------------
 
-spd_cameras <- st_read("input/speed_traps.shp") # UPDATE SOURCE FILE
+spd_cameras <- st_read(glue("{input}/speed_traps.shp")) # UPDATE SOURCE FILE
 
 taz_dsc <- spd_cameras %>% 
   st_transform(crs = 31982) %>% 
@@ -311,7 +313,7 @@ sp_legend <- c("Speeding:", "Traveled\ndistances [km]:")
 sp_dist_maps <- map2(sp_var, sp_legend, plot_sp_dist_maps)
 
 save_sp_maps <- function(plot, names) {
-  names <- paste("output/", names, ".png", sep = "")
+  names <- glue("{output02}{names}.png")
   ggsave(names, plot, device = "png", height = 4.5, width = 4, dpi = 300)
 }
 
@@ -355,7 +357,7 @@ var_maps <- pmap(list(var, title, palette), plot_var)
 names(var_maps) <- var
 
 save_var_maps <- function(plot, names) {
-  names <- paste("output/map_", names, ".png", sep = "")
+  names <- glue("{output02}map_{names}.png")
   tmap_save(tm = plot,
             filename = names,
             height = 3.5,

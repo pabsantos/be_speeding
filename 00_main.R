@@ -2,14 +2,19 @@
 
 library(geobr)
 library(GGally)
+library(glue)
 library(GWmodel)
 library(hms)
 library(lubridate)
+library(readxl)
 library(rgeoda)
 library(sf)
 library(spdep)
 library(tidyverse)
 library(tmap)
+
+input <- "input"
+output <- "output"
 
 # 01 - NDS data arrangement -----------------------------------------------
 
@@ -31,5 +36,10 @@ source("04_gwr.R")
 
 source("05_clusters.R")
 
-# 06 - Misc. analysis ----------------------------------------------------
+# 06 - Additional maps and plots -----------------------------------------
+
+source("06_misc.R")
+
+# 07 Road safety data ----------------------------------------------------
+
 

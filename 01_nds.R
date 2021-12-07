@@ -1,3 +1,5 @@
+output01 <- glue("{output}/01/")
+
 # data import -------------------------------------------------------------
 
 data_import <- function(folder, pattern) {
@@ -8,7 +10,7 @@ data_import <- function(folder, pattern) {
     return(drivers)
 }
 
-drivers <- data_import("input", "^drivers")
+drivers <- data_import(input, "^drivers")
 
 # data fix ----------------------------------------------------------------
 
@@ -87,7 +89,7 @@ drivers_cwb_sf <- drivers_full_sf %>%
 rm(drivers_full_sf)
 
 ## Importing road axis
-axis <- st_read("input/eixo_osm+ippuc_lim_velocidade.gpkg")
+axis <- st_read(glue("{input}/eixo_osm+ippuc_lim_velocidade.gpkg"))
 
 ## Extracting speed limits
 drivers_cwb_sf <- drivers_cwb_sf %>% 
@@ -167,4 +169,4 @@ names(results) <- c("Full travel time [h]",
                     "Speeding distance [m]")
 
 results <- broom::tidy(results)
-write_csv(results, 'output/nds_results.csv')
+write_csv(results, glue('{output01}nds_results.csv'))

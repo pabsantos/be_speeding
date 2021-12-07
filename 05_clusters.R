@@ -1,3 +1,5 @@
+output05 <- glue("{output}/05/")
+
 # Calculating LISA ----------------------------------------------------
 
 calc_lisa <- function(var, taz) {
@@ -73,7 +75,7 @@ all_lisa_maps <- list(lisa_coefs_maps, lisa_sp_maps,
 all_lisa_names <- c(gwr_ind_var, "SP", "LM_SP", "local_R2")
 
 save_lisa_maps <- function(maps, names) {
-  names <- paste("output/lisa_", names, ".png", sep = "")
+  names <- glue("{output05}lisa_{names}.png")
   ggsave(filename = names, plot = maps, width = 3, height = 3.5,
          device = "png", dpi = 300)
 }
@@ -89,7 +91,7 @@ make_cluster_data <- function(lisa_taz) {
   lisa_taz %>% 
     st_make_valid() %>% 
     group_by(cluster) %>% 
-    summarise(geometry = st_union(geometry)) %>% 
+    summarise() %>% 
     filter(cluster != "Not significant")
 }
 

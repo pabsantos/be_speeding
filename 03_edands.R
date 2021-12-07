@@ -1,3 +1,5 @@
+output03 <- glue("{output}/03/")
+
 drivers_lines_sf <- drivers_lines_sf %>% 
   mutate(DISTANCE = units::set_units(st_length(WKT), km),
          DISTANCE = units::drop_units(DISTANCE))
@@ -135,7 +137,7 @@ plots <- list(dotw_dist, dotw_trips, dotw_sp, hotd_dist, hotd_sp,
 names <- c("dotw_dist", "dotw_trips", "dotw_sp", "hotd_dist", "hotd_sp",
            "hotd_trip", "sp_zones")
 
-names <- paste("output/", names, ".pdf", sep = "")
+names <- glue("{output03}{names}.pdf")
 
 save_plots <- function(plots, names) {
   ggsave(names, plots, device = "pdf", dpi = 300, width = 6, height = 3.5)
