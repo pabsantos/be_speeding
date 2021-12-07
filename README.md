@@ -39,14 +39,16 @@ Applies the GWR method on the TAZ data with functions from the `GWmodel` package
 
 Speeding: geographically weighted local mean
 
-<img src="output/mean_map.png" width=50%>
+<img src="output/04/mean_map.png" width=50%>
 
 ### `05_cluster.R`
 Includes LISA clustering process, applied with functions from `rgeoda` package. Exports cluster maps of all variables. 
 
 Speeding: LISA cluster
 
-<img src="output/lisa_LM_SP.png" width=50%>
+<img src="output/05/lisa_LM_SP.png" width=50%>
 
 ### `06_misc.R`
-_Work in progress._
+Additional maps regarding Curitiba's road hierarchy and land zoning. 
+
+<img src="output/06/grid_map.png" width=50%>
