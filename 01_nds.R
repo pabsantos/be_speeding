@@ -32,6 +32,21 @@ drivers[[2]] <- drivers[[2]] %>%
          TIME = hms::as_hms(PR)) %>% 
   select(DRIVER, TRIP, ID, LONG, LAT, DATE, TIME, S, SPD_KMH, VALID_TIME)
 
+## Full table 3
+drivers[[3]] <- drivers[[3]] %>% 
+  mutate(DATE = mdy(DAY)) %>% 
+  filter(SPD_KMH < 200) %>% 
+  rename(TIME = PR) %>% 
+  select(DRIVER, TRIP, ID, LONG, LAT, DATE, TIME, S, SPD_KMH, VALID_TIME)
+
+## Full table 4
+drivers[[4]] <- drivers[[4]] %>% 
+  mutate(DATE = mdy(DAY...4)) %>% 
+  rename(TIME = PR) %>% 
+  filter(LONG != 0, LAT != 0) %>%
+  select(DRIVER, TRIP, ID, LONG, LAT, DATE, TIME, S, SPD_KMH, VALID_TIME)
+  
+
 ## Combining
 drivers_full <- reduce(drivers, bind_rows)
 
@@ -104,7 +119,7 @@ rm(axis)
 ## Removing first trips and selecting valid times
 drivers_cwb_sf <- drivers_cwb_sf %>% 
   filter(TRIP != 1,
-         VALID_TIME %in% c("yes", "Yes")) %>% 
+         VALID_TIME %in% c("yes", "Yes", "True")) %>% 
   select(-VALID_TIME)
 
 # Valid travel time -------------------------------------------------------

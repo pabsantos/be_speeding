@@ -29,7 +29,7 @@ dotw_trips <- drivers_time_date %>%
   ggplot(aes(dow, trips)) +
   geom_col() +
   labs(x = "Day of the week", y = "Trips") +
-  scale_y_continuous(breaks = seq(0,90,10), minor_breaks = NULL)
+  scale_y_continuous(breaks = seq(0,150,10), minor_breaks = NULL)
 
 # Distance per hour of the day --------------------------------------------
 
@@ -109,8 +109,7 @@ sp_zones <- drivers_time_date %>%
             TRIPS_SP = sum(SPEEDING_N) / n_distinct(ID),
             TRIPS = n_distinct(ID)) %>% 
   ggplot(aes(x = TRIPS_SP, y = MEAN_SP)) +
-  geom_point(color = "black", alpha = 0.7, 
-             shape = 21, fill = "grey50", aes(size = TRIPS)) +
+  geom_point(color = "midnightblue", alpha = 0.4, aes(size = TRIPS)) +
   geom_hline(yintercept = 0.2, linetype = 2) +
   geom_vline(xintercept = 0.2, linetype = 2) +
   annotate(geom = "text", 
