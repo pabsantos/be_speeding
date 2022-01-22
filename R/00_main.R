@@ -14,32 +14,32 @@ library(spdep)
 library(tidyverse)
 library(tmap)
 
-input <- "input"
-output <- "output"
+input <- "data/input"
+output <- "data/output"
 
 # 01 - NDS data arrangement -----------------------------------------------
 
-source("01_nds.R")
+source("R/01_nds.R")
 
 # 02 - TAZ Data -----------------------------------------------------------
 
-source("02_taz.R")
+source("R/02_taz.R")
 
 # 03 - Exploratory data analysis on NDS data ------------------------------
 
-source("03_edands.R")
+source("R/03_edands.R")
 
 # 04 - GWR Model ----------------------------------------------------------
 
-source("04_gwr.R")
+source("R/04_gwr.R")
 
 # 05 - LISA Clustering ---------------------------------------------------
 
-source("05_clusters.R")
+source("R/05_clusters.R")
 
 # 06 - Additional maps and plots -----------------------------------------
 
-source("06_misc.R")
+source("R/06_misc.R")
 
 
 
