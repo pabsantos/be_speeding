@@ -3,6 +3,6 @@
 *.RData
 *.Ruserdata
 *.Rproj
-/input
+data/input/
 input.zip
 .Rproj.user
