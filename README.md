@@ -29,7 +29,7 @@ Imports all NDS-BR data in the `.csv` format (`drivers_pt1.csv`, etc.) and makes
 ### `02_taz.R`
 Imports a spatial file with the 135 TAZ in Curitiba and calculates all the built environment (BE) variables for each zone, in addition to the speeding and traveled distance. The processing was mainly based on the `sf` package and `tidyverse` meta-package. It creates and exports maps using the `tmap` package. 
 
-<img src="data/output/02/map_SP.png" width=50%> <img src="output/02/map_DIST_TOTAL.png" width=50%>
+<img src="data/output/02/map_SP.png" width=50%> <img src="data/output/02/map_DIST_TOTAL.png" width=50%>
 
 ### `03_edands.R`
 Contains an exploratory data analysis on the NDS sample. Plots information regarding travel distance and speeding, using `ggplot2` package.
