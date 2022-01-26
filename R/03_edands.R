@@ -1,8 +1,10 @@
 output03 <- glue("{output}/03/")
 
 drivers_lines_sf <- drivers_lines_sf %>% 
-  mutate(DISTANCE = units::set_units(st_length(WKT), km),
-         DISTANCE = units::drop_units(DISTANCE))
+  mutate(
+    DISTANCE = units::set_units(st_length(wkt), km),
+    DISTANCE = units::drop_units(DISTANCE)
+  )
 
 # Distance traveled per day of the week -----------------------------------
 
@@ -10,9 +12,11 @@ theme_set(theme_minimal())
 
 drivers_time_date <- drivers_lines_sf %>% 
   st_drop_geometry() %>% 
-  mutate(dow = wday(DATE, label = TRUE, abbr = TRUE),
-         hotd = hour(TIME),
-         IS_AM = am(TIME))
+  mutate(
+    dow = wday(date, label = TRUE, abbr = TRUE, locale = "en_US.utf8"),
+    hotd = hour(time),
+    IS_AM = am(time)
+  )
 
 dotw_dist <- drivers_time_date %>% 
   group_by(dow) %>% 
@@ -25,7 +29,7 @@ dotw_dist <- drivers_time_date %>%
 
 dotw_trips <- drivers_time_date %>% 
   group_by(dow) %>% 
-  summarise(trips = n_distinct(ID)) %>% 
+  summarise(trips = n_distinct(id)) %>% 
   ggplot(aes(dow, trips)) +
   geom_col() +
   labs(x = "Day of the week", y = "Trips") +
@@ -34,12 +38,16 @@ dotw_trips <- drivers_time_date %>%
 # Distance per hour of the day --------------------------------------------
 
 drivers_time_date <- drivers_time_date %>% 
-  mutate(IS_AM = as.factor(IS_AM),
-         hotd = as.double(hotd),
-         hotd_ampm = case_when(hotd == 0 ~ hotd + 12,
-                               hotd >= 1 & hotd < 13 ~ hotd,
-                               hotd >= 13 ~ hotd - 12,
-                               TRUE ~ NA_real_))
+  mutate(
+    IS_AM = as.factor(IS_AM),
+    hotd = as.double(hotd),
+    hotd_ampm = case_when(
+      hotd == 0 ~ hotd + 12,
+      hotd >= 1 & hotd < 13 ~ hotd,
+      hotd >= 13 ~ hotd - 12,
+      TRUE ~ NA_real_
+    )
+  )
 
 hotd_dist <- drivers_time_date %>% 
   group_by(hotd) %>% 
@@ -53,10 +61,10 @@ hotd_dist <- drivers_time_date %>%
 # Trips per hour of the day -----------------------------------------------
 
 hotd_trip <- drivers_time_date %>% 
-  group_by(ID) %>% 
+  group_by(id) %>% 
   summarise(start = min(hotd)) %>% 
   group_by(start) %>% 
-  summarise(n = n_distinct(ID)) %>% 
+  summarise(n = n_distinct(id)) %>% 
   ggplot(aes(start, n)) +
   geom_col() +
   scale_x_continuous(breaks = seq(0,23,1), minor_breaks = NULL) +
@@ -66,8 +74,10 @@ hotd_trip <- drivers_time_date %>%
 # Speeding per hour of the day --------------------------------------------
 
 drivers_time_date <- drivers_time_date %>% 
-  mutate(IS_EXPOSURE = if_else(limite_vel - SPD_KMH < 10, TRUE, FALSE),
-         IS_SPEEDING = if_else(SPD_KMH - limite_vel > 5, TRUE, FALSE))
+  mutate(
+    IS_EXPOSURE = if_else(limite_vel - spd_kmh < 10, TRUE, FALSE),
+    IS_SPEEDING = if_else(spd_kmh - limite_vel > 5, TRUE, FALSE)
+  )
 
 hotd_sp <- drivers_time_date %>% 
   filter(IS_EXPOSURE == TRUE) %>% 
@@ -98,30 +108,39 @@ dotw_sp <- drivers_time_date %>%
 
 sp_zones <- drivers_time_date %>% 
   filter(IS_EXPOSURE == TRUE) %>%
-  group_by(DRIVER, ID, IS_SPEEDING) %>% 
+  group_by(driver, id, IS_SPEEDING) %>% 
   summarise(DISTANCE = sum(DISTANCE)) %>% 
   pivot_wider(names_from = IS_SPEEDING, values_from = DISTANCE) %>% 
-  mutate(SPEEDING = `TRUE` / (`TRUE` + `FALSE`),
-         SPEEDING = if_else(is.na(SPEEDING), 0, SPEEDING),
-         SPEEDING_N = if_else(SPEEDING > 0, 1, 0)) %>% 
-  group_by(DRIVER) %>% 
-  summarise(MEAN_SP = mean(SPEEDING),
-            TRIPS_SP = sum(SPEEDING_N) / n_distinct(ID),
-            TRIPS = n_distinct(ID)) %>% 
+  mutate(
+    SPEEDING = `TRUE` / (`TRUE` + `FALSE`),
+    SPEEDING = if_else(is.na(SPEEDING), 0, SPEEDING),
+    SPEEDING_N = if_else(SPEEDING > 0, 1, 0)
+  ) %>% 
+  group_by(driver) %>% 
+  summarise(
+    MEAN_SP = mean(SPEEDING),
+    TRIPS_SP = sum(SPEEDING_N) / n_distinct(id),
+    TRIPS = n_distinct(id)
+  ) %>% 
   ggplot(aes(x = TRIPS_SP, y = MEAN_SP)) +
   geom_point(color = "midnightblue", alpha = 0.4, aes(size = TRIPS)) +
   geom_hline(yintercept = 0.2, linetype = 2) +
   geom_vline(xintercept = 0.2, linetype = 2) +
-  annotate(geom = "text", 
-           x = c(0.1, 0.1, 0.7, 0.7), 
-           y = c(0.7, 0.1, 0.1, 0.7), 
-           label = c("Situational\nspeeding", "Incidental\nspeeding", 
-                     "Casual\nspeeding", "Habitual\nspeeding"),
-           size = 3) +
-  scale_x_continuous(limits = c(0,1), minor_breaks = NULL, 
-                     breaks = seq(0,1,0.2)) +
-  scale_y_continuous(limits = c(0,1), minor_breaks = NULL, 
-                     breaks = seq(0,1,0.2)) +
+  annotate(
+    geom = "text", 
+    x = c(0.1, 0.1, 0.7, 0.7), 
+    y = c(0.7, 0.1, 0.1, 0.7), 
+    label = c(
+      "Situational\nspeeding", "Incidental\nspeeding", 
+      "Casual\nspeeding", "Habitual\nspeeding"
+    ), size = 3
+  ) +
+  scale_x_continuous(
+    limits = c(0,1), minor_breaks = NULL,breaks = seq(0,1,0.2)
+  ) +
+  scale_y_continuous(
+    limits = c(0,1), minor_breaks = NULL, breaks = seq(0,1,0.2)
+  ) +
   labs(
     x = "Percent of trips with any speeding",
     y = "Average speeding per trip"

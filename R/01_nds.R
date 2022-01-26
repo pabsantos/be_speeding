@@ -8,7 +8,7 @@ data_import <- function(folder, pattern) {
     return(drivers)
 }
 
-drivers <- data_import(input, "^drivers")
+drivers <- data_import(input, "^drivers_pt")
 
 fix_sample <- function(table) {
   table %>% 
@@ -31,14 +31,7 @@ fix_date <- function(table, var) {
     mutate(date = lubridate::dmy({{ var }}))
 }
 
-fix_date_03 <- function(table, var) {
-  table %>% mutate(date = lubridate::mdy({{ var }}))
-}
-
-drivers[[1]] <- fix_date(drivers[[1]], DAY)
-drivers[[2]] <- fix_date(drivers[[2]], DAY)
-drivers[[3]] <- fix_date_03(drivers[[3]], DAY)
-drivers[[4]] <- fix_date(drivers[[4]], `DAY...4`)
+drivers <- map(drivers, ~fix_date(table = .x, var = DAY))
 
 drivers <- map(drivers, fix_sample)
 
@@ -101,7 +94,7 @@ create_points <- function(table) {
 filter_cwb_points <- function(points, cwb) {
   points %>% 
     st_join(cwb["name_muni"]) %>% 
-    filter(name_muni = "Curitiba") %>% 
+    filter(name_muni == "Curitiba") %>% 
     select(-name_muni)
 }
 
@@ -141,64 +134,77 @@ calc_valid_time <- function(points) {
   points %>% drop_na(s) %>% pull(s) %>% sum() / 3600
 }
 
-valid_time <- drivers_cwb_sf %>% 
-  drop_na(S) %>% 
-  pull(S) %>% 
-  sum() / 3600
+valid_time <- calc_valid_time(drivers_cwb_sf)
 
 # Valid travel distance ---------------------------------------------------
 
-## Transforming into linestring
-drivers_lines_sf <- drivers_cwb_sf %>% 
-  mutate(coords = st_as_text(geometry)) %>% 
-  st_drop_geometry() %>% 
-  separate(coords, into = c("point", "coords"), sep = "\\s", 
-           extra = "merge") %>% 
-  mutate(lag = TIME - lag(TIME),
-         WKT = case_when(
-           lag == 1 ~ paste("LINESTRING (", str_sub(lag(coords),2,-2), ", ", 
-                            str_sub(coords,2,-2), ")", sep = ""),
-           lag > 1 ~ "0",
-           lag < 1 ~ "0",
-           TRUE ~ NA_character_)) %>% 
-  filter(WKT != "0") %>%
-  drop_na(WKT) %>% 
-  select(-lag, -S, -point, -coords) %>%
-  st_as_sf(wkt = "WKT") %>%
-  st_set_crs(4674)
+transform_linestring <- function(points) {
+  points %>% 
+    mutate(coords = st_as_text(geometry)) %>% 
+    st_drop_geometry() %>% 
+    separate(
+      coords, into = c("point", "coords"), sep = "\\s", extra = "merge"
+    ) %>% 
+    mutate(
+      lag = time - lag(time),
+      wkt = case_when(
+        lag == 1 ~ paste0(
+          "LINESTRING (", str_sub(lag(coords), 2, -2), ", ", 
+          str_sub(coords, 2, -2), ")"
+        ),
+        lag > 0 ~ "0",
+        lag < 0 ~ "0",
+        TRUE ~ NA_character_
+      )
+    ) %>% 
+    filter(wkt != "0") %>% 
+    drop_na(wkt) %>% 
+    select(-lag, -s, -point, -coords) %>% 
+    st_as_sf(wkt = "wkt") %>% 
+    st_set_crs(4674)
+}
+
+drivers_lines_sf <- transform_linestring(drivers_cwb_sf)
 
 rm(drivers_cwb_sf)  
 
-## Extracting distance
-valid_dist <- drivers_lines_sf %>% 
-  st_length() %>% 
-  sum()
+calc_valid_dist <- function(lines) {
+  lines %>% st_length() %>% sum()
+}
 
-# Distance in exposure speeds ---------------------------------------------
+valid_dist <- calc_valid_dist(drivers_lines_sf)
 
-exp_dist <- drivers_lines_sf %>% 
-  mutate(exp_spd = limite_vel - SPD_KMH) %>% 
-  filter(exp_spd < 10) %>% 
-  st_length() %>% 
-  sum()
+calc_exp_dist <- function(lines) {
+  lines %>% 
+    mutate(exp_spd = limite_vel - spd_kmh) %>% 
+    filter(exp_spd < 10) %>% 
+    st_length() %>% 
+    sum()
+}
 
-# Distance in speeding ----------------------------------------------------
+exp_dist <- calc_exp_dist(drivers_lines_sf)
 
-spd_dist <- drivers_lines_sf %>% 
-  mutate(speeding = SPD_KMH - limite_vel) %>% 
-  filter(speeding > 5) %>% 
-  st_length() %>% 
-  sum()
+calc_spd_dist <- function(lines) {
+  lines %>% 
+    mutate(speeding = spd_kmh - limite_vel) %>% 
+    filter(speeding > 5) %>% 
+    st_length() %>% 
+    sum()
+}
+
+spd_dist <- calc_spd_dist(drivers_lines_sf)
 
 # Gathering and exporting results -----------------------------------------
 
-results <- c(full_time, full_dist, valid_time, valid_dist, exp_dist, spd_dist)
-names(results) <- c("Full travel time [h]", 
-                    "Full traveled distance [m]", 
-                    "Valid travel time [h]", 
-                    "Valid traveled distance [m]",
-                    "Traveled distance in exposure [m]", 
-                    "Speeding distance [m]")
+results <- c(
+  full_time, full_distance, valid_time, valid_dist, exp_dist, spd_dist
+)
+
+names(results) <- c(
+  "Full travel time [h]", "Full traveled distance [m]", 
+  "Valid travel time [h]", "Valid traveled distance [m]",
+  "Traveled distance in exposure [m]", "Speeding distance [m]"
+)
 
 results <- broom::tidy(results)
 write_csv(results, glue('{output01}nds_results.csv'))
