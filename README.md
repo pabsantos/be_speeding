@@ -29,7 +29,7 @@ Imports all NDS-BR data in the `.csv` format (`drivers_pt1.csv`, etc.) and makes
 ### `02_taz.R`
 Imports a spatial file with the 135 TAZ in Curitiba and calculates all the built environment (BE) variables for each zone, in addition to the speeding and traveled distance. The processing was mainly based on the `sf` package and `tidyverse` meta-package. It creates and exports maps using the `tmap` package. 
 
-<img src="output/02/map_SP.png" width=50%> <img src="output/02/map_DIST_TOTAL.png" width=50%>
+<img src="data/output/02/map_SP.png" width=50%> <img src="output/02/map_DIST_TOTAL.png" width=50%>
 
 ### `03_edands.R`
 Contains an exploratory data analysis on the NDS sample. Plots information regarding travel distance and speeding, using `ggplot2` package.
@@ -39,16 +39,16 @@ Applies the GWR method on the TAZ data with functions from the `GWmodel` package
 
 Speeding: geographically weighted local mean
 
-<img src="output/04/mean_map.png" width=50%>
+<img src="data/output/04/mean_map.png" width=50%>
 
 ### `05_cluster.R`
 Includes LISA clustering process, applied with functions from `rgeoda` package. Exports cluster maps of all variables. 
 
 Speeding: LISA cluster
 
-<img src="output/05/lisa_LM_SP.png" width=50%>
+<img src="data/output/05/lisa_LM_SP.png" width=50%>
 
 ### `06_misc.R`
 Additional maps regarding Curitiba's road hierarchy and land zoning. 
 
-<img src="output/06/grid_map.png" width=50%>
+<img src="data/output/06/grid_map.png" width=50%>
