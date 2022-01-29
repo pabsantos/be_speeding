@@ -19,11 +19,15 @@ fix_sample <- function(table) {
       long = LONG,
       lat = LAT,
       s = S,
+      time_acum = TIME_ACUM,
       spd_kmh = SPD_KMH,
       valid_time = VALID_TIME,
       time = PR
     ) %>% 
-    select(driver, trip, id, long, lat, date, time, s, spd_kmh, valid_time)
+    select(
+      driver, trip, id, long, lat, date, 
+      time, s, time_acum, spd_kmh, valid_time
+    )
 }
 
 fix_date <- function(table, var) {
@@ -57,7 +61,7 @@ create_linestring <- function(table) {
     drop_na(long, lat) %>% 
     filter(long != 0, lat != 0) %>% 
     mutate(
-      lag = time - lag(time),
+      lag = time_acum - lag(time_acum),
       wkt = case_when(
         lag == 1 ~ paste0(
           "LINESTRING (", lag(long), " ", lag(lat), ", ", long, " ", lat, ")"
@@ -103,7 +107,7 @@ extract_speed_limits <- function(points, axis) {
     st_transform(crs = 31982) %>% 
     st_join(st_buffer(axis["limite_vel"], dist = 10)) %>% 
     filter(!is.na(limite_vel)) %>% 
-    distinct(date, time, .keep_all = TRUE) %>% 
+    distinct(id, time_acum, .keep_all = TRUE) %>% 
     st_transform(crs = 4674)
 }
 
@@ -146,7 +150,7 @@ transform_linestring <- function(points) {
       coords, into = c("point", "coords"), sep = "\\s", extra = "merge"
     ) %>% 
     mutate(
-      lag = time - lag(time),
+      lag = time_acum - lag(time_acum),
       wkt = case_when(
         lag == 1 ~ paste0(
           "LINESTRING (", str_sub(lag(coords), 2, -2), ", ", 
