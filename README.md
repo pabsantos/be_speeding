@@ -4,18 +4,20 @@
 This repository contains the method in R programming language of the master thesis entitled "The Impact of Built Environment on Speeding Behavior in Curitiba - Brazil" from the Post-Graduate Program in Urban Planning - PPU UPPR. The main objective is to apply a geographically weighted regression (GWR) to analyze the effect of the built environment on the occurrence of speeding in Curitiba, based on its 135 traffic analysis zones (TAZ) as area unit. The speeding data was gathered in the [Brazilian Naturalistic Driving Study (NDS-BR)](http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/). 
 
 ## Structure
-| File/folder     | Description                          |
-| --------------- | ------------------------------------ | 
-| `00_main.R`     | Main script                          |
-| `01_nds.R`      | Processing of the NDS-BR data.       |
-| `02_taz.R`      | Variable creation for each TAZ.      |
-| `03_eda.R`      | EDA on the NDS-BR data.              |
-| `04_gwr.R`      | GWR on the variables.                |
-| `05_clusters.R` | Spatial cluster analysis on results. | 
-| `06_misc.R`     | Analysis on land use and road safety |
-| `output/`       | Maps, plots and text results         |
-| `input/`        | Input data                           |
-NOTE: The `input/` folder can be downloaded in the following [link](https://drive.google.com/file/d/1mSol6yksyMVdWEGysoZeLLA8qOMruwrr/view?usp=sharing).
+| File/folder       | Description                          |
+| ----------------- | ------------------------------------ | 
+| `R/`              | R scripts                            |
+| `R/00_main.R`     | Main script                          |
+| `R/01_nds.R`      | Processing of the NDS-BR data.       |
+| `R/02_taz.R`      | Variable creation for each TAZ.      |
+| `R/03_eda.R`      | EDA on the NDS-BR data.              |
+| `R/04_gwr.R`      | GWR on the variables.                |
+| `R/05_clusters.R` | Spatial cluster analysis on results. | 
+| `R/06_misc.R`     | Analysis on land use and road safety |
+| `data/`           | Data folder, wih inputs and outputs  |
+| `data/output/`    | Maps, plots and text results         |
+| `data/input/`     | Input data                           |
+NOTE: The `input/` folder can be downloaded in the following [link](https://drive.google.com/file/d/1mSol6yksyMVdWEGysoZeLLA8qOMruwrr/view?usp=sharing) (**OUTDATED**). 
 
 ## Steps
 This section contains a detailed description of each step.
