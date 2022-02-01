@@ -14,7 +14,7 @@ This repository contains the method in R programming language of the master thes
 | `R/04_gwr.R`      | GWR on the variables.                |
 | `R/05_clusters.R` | Spatial cluster analysis on results. | 
 | `R/06_misc.R`     | Analysis on land use and road safety |
-| `data/`           | Data folder, wih inputs and outputs  |
+| `data/`           | Data folder, with inputs and outputs |
 | `data/output/`    | Maps, plots and text results         |
 | `data/input/`     | Input data                           |
 NOTE: The `input/` folder can be downloaded in the following [link](https://drive.google.com/file/d/1mSol6yksyMVdWEGysoZeLLA8qOMruwrr/view?usp=sharing) (**OUTDATED**). 
