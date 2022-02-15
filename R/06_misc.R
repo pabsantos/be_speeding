@@ -81,7 +81,7 @@ ggsave(
 
 road_zoning_cwb <- st_read("data/input/EIXO_RUA_UTF.shp")
 
-road_zoning_plot <- road_zoning_cwb %>% 
+road_zoning_cwb <- road_zoning_cwb %>% 
   select(SVIARIO) %>% 
   mutate(
     SVIARIO = case_when(
@@ -101,7 +101,9 @@ road_zoning_plot <- road_zoning_cwb %>%
         "Collector", "Prioritized", "Other"
         )
       )
-    ) %>% 
+    ) 
+
+road_zoning_plot <- road_zoning_cwb %>% 
   ggplot() +
   geom_sf(data = cwb, color = "grey40", fill = NA, lwd = 0.4) +
   geom_sf(aes(color = SVIARIO, alpha = SVIARIO, size = SVIARIO)) +
@@ -250,7 +252,54 @@ tmap_save(
   width = 4.5, dpi = 300
 )
 
-# Comparing clusters ------------------------------------------------------
+# Combining and saving spatial data ---------------------------------------
+
+gwr_coefs_selection <- function(gwr_data) {
+  gwr_data %>% 
+    st_as_sf() %>% 
+    select(Intercept:DIS, Local_R2) %>% 
+    rename_with(~str_c("coef_", .), PAR:DIS)
+}
+
+extract_lisa_clusters <- function(lisa_data, names) {
+  lisa_data %>% 
+    select(cluster) %>% 
+    rename_with(~paste0("cluster_", names), cluster)
+}
+
+coef_data <- gwr_chosen_model$SDF %>% gwr_coefs_selection()
+
+lisa_data <- append(lisa_coefs, list(lisa_sp, lisa_lm_sp, lisa_r2))
+
+lisa_cluster_names <- c(gwr_ind_var, "SP", "LM_SP", "Local_R2")
+
+clusters_data <- map2(lisa_data, lisa_cluster_names, extract_lisa_clusters)
+
+taz %>% 
+  st_join(st_centroid(clusters_data[[1]])) %>% 
+  qtm(fill = "cluster_AVI")
+
+join_coef_data <- function(taz, data) {
+  taz %>% 
+    st_join(st_centroid(data))
+}
+
+taz <- join_coef_data(taz, coef_data)
 
 
+join_cluster_data <- function(taz, data) {
+  taz %>% 
+    st_join(st_centroid(data)) %>% 
+    select(starts_with("cluster")) %>% 
+    st_drop_geometry()
+}
 
+taz_cluster_data <- map(clusters_data, ~join_cluster_data(taz, data = .x))
+
+taz_cluster_data %>% reduce(bind_cols)
+
+taz <- bind_cols(taz, taz_cluster_data)
+
+st_write(taz, "data/output/06/taz_data.gpkg")
+
+st_write()

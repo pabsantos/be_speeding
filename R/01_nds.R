@@ -4,7 +4,7 @@ data_import <- function(folder, pattern) {
     names <- list.files(folder, pattern)
     path <- paste(folder, names, sep = "/")
     drivers <- vector(length = 4L)
-    drivers <- map(path, read_csv)
+    drivers <- map(path, ~vroom::vroom(.x, delim = ","))
     return(drivers)
 }
 

@@ -69,7 +69,7 @@ hotd_trip <- drivers_time_date %>%
   geom_col() +
   scale_x_continuous(breaks = seq(0,23,1), minor_breaks = NULL) +
   scale_y_continuous(minor_breaks = NULL) +
-  labs(x = "Trip start hour", y = "Traveled distance (km)")
+  labs(x = "Trip start hour", y = "Trips")
 
 # Speeding per hour of the day --------------------------------------------
 

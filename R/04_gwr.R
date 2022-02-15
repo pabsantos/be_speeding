@@ -220,7 +220,7 @@ write_csv(mmc_results, glue("{output04}mmc_results.csv"))
 # Selecting best model ----------------------------------------------------
 
 # manual process, check diagnostic (code to be implemented ...)
-gwr_chosen_model <- gwr_model_results[[2]]
+gwr_chosen_model <- gwr_model_results[[4]]
 
 # Plot of SP GW summary ---------------------------------------------------
 

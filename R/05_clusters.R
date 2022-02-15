@@ -96,24 +96,24 @@ save_lisa_maps(lisa_r2_maps, "local_R2")
 
 # Creating clusters data --------------------------------------------------
 
-make_cluster_data <- function(lisa_taz) {
-  lisa_taz %>% 
-    st_make_valid() %>% 
-    group_by(cluster) %>% 
-    summarise() %>% 
-    filter(cluster != "Not significant")
-}
-
-lisa_coefs_cluster <- map(lisa_coefs, make_cluster_data)
-names(lisa_coefs_cluster) <- gwr_ind_var
-
-lisa_misc_cluster <- map(list(lisa_sp, lisa_lm_sp, lisa_r2), make_cluster_data)
-
-lisa_sp_cluster <- lisa_sp %>% 
-  st_make_valid() %>% 
-  group_by(cluster) %>% 
-  summarise(geom = st_union(geom)) %>% 
-  filter(cluster != "Not significant")
-
-lisa_lm_r2_cluster <- map(list(lisa_lm_sp, lisa_r2), make_cluster_data)
-names(lisa_lm_r2_cluster) <- c("LM_SP", "local_R2")
+# make_cluster_data <- function(lisa_taz) {
+#   lisa_taz %>% 
+#     st_make_valid() %>% 
+#     group_by(cluster) %>% 
+#     summarise() %>% 
+#     filter(cluster != "Not significant")
+# }
+# 
+# lisa_coefs_cluster <- map(lisa_coefs, make_cluster_data)
+# names(lisa_coefs_cluster) <- gwr_ind_var
+# 
+# lisa_misc_cluster <- map(list(lisa_sp, lisa_lm_sp, lisa_r2), make_cluster_data)
+# 
+# lisa_sp_cluster <- lisa_sp %>% 
+#   st_make_valid() %>% 
+#   group_by(cluster) %>% 
+#   summarise(geom = st_union(geom)) %>% 
+#   filter(cluster != "Not significant")
+# 
+# lisa_lm_r2_cluster <- map(list(lisa_lm_sp, lisa_r2), make_cluster_data)
+# names(lisa_lm_r2_cluster) <- c("LM_SP", "local_R2")
