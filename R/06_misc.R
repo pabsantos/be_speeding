@@ -50,7 +50,7 @@ road_cwb <- road_cwb %>%
     )
 
 road_cwb_plot <- ggplot() +
-  geom_sf(data = cwb, fill = NA) +
+  geom_sf(data = cwb, fill = "white") +
   geom_sf(
     data = road_cwb, aes(
       color = HIERARQUIA, size = HIERARQUIA, alpha = HIERARQUIA
@@ -66,15 +66,15 @@ road_cwb_plot <- ggplot() +
     size = "Road category:"
   ) +
   theme(
-    legend.position = c(0.90, 0.15), 
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 6),
+    legend.position = c(0.90, 0.13), 
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
     legend.key.height = unit(0.4, "cm")
   )
 
 ggsave(
-  filename = glue("{output06}road_cwb_map.pdf"), plot = road_cwb_plot,
-  width = 3, height = 3.5, dpi = 300, device = "pdf"
+  filename = glue("{output06}road_cwb_map.png"), plot = road_cwb_plot,
+  width = 6, height = 4.5, dpi = 300, device = "png"
 )
 
 # Road system (zoning) ----------------------------------------------------
@@ -105,7 +105,7 @@ road_zoning_cwb <- road_zoning_cwb %>%
 
 road_zoning_plot <- road_zoning_cwb %>% 
   ggplot() +
-  geom_sf(data = cwb, color = "grey40", fill = NA, lwd = 0.4) +
+  geom_sf(data = cwb, color = "grey40", fill = "white", lwd = 0.4) +
   geom_sf(aes(color = SVIARIO, alpha = SVIARIO, size = SVIARIO)) +
   theme_void() +
   scale_color_manual(values = c(
@@ -120,18 +120,18 @@ road_zoning_plot <- road_zoning_cwb %>%
   ) +
   theme(
     legend.position = c(0.95, 0.15), 
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
     legend.key.height = unit(0.4, "cm")
   )
 
 ggsave(
-  filename = glue("{output06}road_zoning_map.pdf"), 
+  filename = glue("{output06}road_zoning_map.png"), 
   plot = road_zoning_plot,
-  width = 4, 
+  width = 6, 
   height = 4.5, 
   dpi = 300, 
-  device = "pdf"
+  device = "png"
 )
 
 # Zona calma --------------------------------------------------------------
@@ -204,25 +204,82 @@ land_zoning <- land_zoning %>%
   group_by(NM_GRUPO) %>% 
   summarise()
 
-zoning_map <- tm_shape(land_zoning) +
+zoning_axes <- land_zoning %>% 
+  filter(NM_GRUPO %in% c(
+    "Structural Axes", "Connector Axes", "Densification Axes", 
+    "Metropolitan Axis"
+    )) %>% 
+  mutate(NM_GRUPO = factor(NM_GRUPO, levels = c(
+    "Metropolitan Axis", "Structural Axes", "Densification Axes", 
+    "Connector Axes"
+    )))
+
+zoning_zones <- land_zoning %>% 
+  filter(NM_GRUPO %in% c(
+    "Residential Zoning", "Central Zoning", "Special Purpose Zoning", 
+    "Mixed Use Zoning"
+  ))
+
+zoning_other <- land_zoning %>% 
+  filter(NM_GRUPO %in% c(
+    "Environmental Protection Area", "Special Sectors", "Preservation Areas"
+  ))
+
+map_axes <- tm_shape(zoning_axes, bbox = st_as_sfc(st_bbox(zoning_other))) +
   tm_fill(
-    col = "NM_GRUPO", title = "Land Zoning Group:",
-    palette = c(
-      "#8dd3C7", "#fdb462", "#bebada", "#b3de69", "#80b1d3",
-      "#bc80bd", "#ccebc5", "#ffffb3", "#fccde5", "#d9d9d9", "#fb8072"
-    )
+    col = "NM_GRUPO",
+    title = "Axes:",
+    palette = c("#E35B70", "#FB8072", "#FDA065", "#E37C5B")
   ) +
-  tm_borders(col = "grey30", lwd = 0.5) +
+  tm_borders(col = "grey30", lwd = 0.5)
+
+map_zones <- tm_shape(zoning_zones) +
+  tm_fill(
+    col = "NM_GRUPO",
+    title = "Zones:",
+    palette = c("#7E83E0", "#83A4EB", "#80B1D3", "#83DBEB")
+  ) +
+  tm_borders(col = "grey30", lwd = 0.5)
+
+
+map_other <- tm_shape(zoning_other) +
+  tm_fill(
+    col = "NM_GRUPO",
+    title = "Other Areas:",
+    palette = c("#B3DE69", "#EBDE63", "#F3F567")
+  ) +
+  tm_borders(col = "grey30", lwd = 0.5)
+
+zoning_map <- map_axes +
+  map_zones +
+  map_other +
   tm_layout(frame = FALSE, legend.width = 1) + 
   tm_legend(
-    legend.position = c(0.86, 0.02),
-    legend.title.size = 0.8, 
+    legend.position = c(0.97, 0.02),
+    legend.title.size = 0.8,
     legend.text.size = 0.6
   )
 
+# tm_shape(land_zoning) +
+#   tm_fill(
+#     col = "NM_GRUPO", title = "Land Zoning Group:",
+#     palette = c(
+#       "#8dd3C7", "#fdb462", "#bebada", "#b3de69", "#80b1d3",
+#       "#bc80bd", "#ccebc5", "#ffffb3", "#fccde5", "#d9d9d9", "#fb8072"
+#     )
+#   ) +
+#   tm_borders(col = "grey30", lwd = 0.5) +
+#   tm_layout(frame = FALSE, legend.width = 1) + 
+#   tm_legend(
+#     legend.position = c(0.86, 0.02),
+#     legend.title.size = 0.8,
+#     legend.text.size = 0.6
+#   )
+#   tm_add_legend("fill", title = "Axes", col = "NM_GRUPO")
+
 tmap_save(
-  tm = zoning_map, filename = glue("{output06}zoning_map.pdf"),
-  units = "in", height = 4, width = 5
+  tm = zoning_map, filename = glue("{output06}zoning_map.png"),
+  units = "in", height = 4.5, width = 6, dpi = 300
 )
 
 # Participants address ----------------------------------------------------

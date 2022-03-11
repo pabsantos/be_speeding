@@ -290,6 +290,8 @@ make_gwr_maps <- function(var) {
     )
 }
 
+gwr_ind_var <- c(gwr_ind_var, "Intercept")
+
 gwr_maps <- map(gwr_ind_var, make_gwr_maps)
 
 gwr_names <- paste(output04, gwr_ind_var, ".png", sep = "")
@@ -341,3 +343,21 @@ taz_results_table <- gwr_chosen_model[["SDF"]]@data %>%
   )
 
 write_csv(taz_results_table, glue("{output04}taz_results_table.csv"))
+
+# Plot SP -----------------------------------------------------------------
+
+taz_plot <- taz_gwr %>% st_as_sf()
+
+sp_map <- ggplot() + 
+  geom_sf(data = cwb, fill = "grey70", color = NA) +
+  geom_sf(data = taz_plot, aes(fill = SP), color = NA) +
+  theme_void() +
+  labs(fill = "SP") +
+  theme(
+    legend.position = c(0.90, 0.19),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 9),
+    legend.key.size = unit(0.5, "cm")
+  )
+
+save_sp_maps(sp_map, "map_SP.png")

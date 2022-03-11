@@ -298,42 +298,58 @@ taz <- taz %>%
   mutate_if(is.numeric, units::drop_units) %>% 
   replace(is.na(.), 0)
 
-# Plotting travel and speeding---------------------------------------------
+# Plotting travel distance -------------------------------------------------
 
-plot_sp_dist_maps <- function(var, legend) {
-  taz %>% 
-    ggplot() +
-    geom_sf(aes(fill = var), color = NA) + 
-    theme_void() +
-    scale_fill_viridis_c(option = "D") +
-    labs(fill = legend) +
-    theme(
-      legend.position = c(0.95, 0.20),
-      legend.text = element_text(size = 7),
-      legend.title = element_text(size = 8),
-      legend.key.size = unit(0.5, "cm")
-    )
-}
-
-sp_var <- taz %>% select(SPEEDING, DIST_TOTAL) %>% st_drop_geometry()
-
-sp_legend <- c("Speeding:", "Traveled\ndistances [km]:")
-
-sp_dist_maps <- map2(sp_var, sp_legend, plot_sp_dist_maps)
-
+# plot_sp_dist_maps <- function(var, legend) {
+#   taz %>%
+#     ggplot() +
+#     geom_sf(aes(fill = var), color = NA) +
+#     theme_void() +
+#     labs(fill = legend) +
+#     theme(
+#       legend.position = c(0.95, 0.20),
+#       legend.text = element_text(size = 7),
+#       legend.title = element_text(size = 8),
+#       legend.key.size = unit(0.5, "cm")
+#     )
+# }
+# 
+# sp_var <- taz %>% select(SPEEDING, DIST_TOTAL) %>% st_drop_geometry()
+# 
+# sp_legend <- c("Speeding:", "Traveled\ndistances [km]:")
+# 
+# sp_dist_maps <- map2(sp_var, sp_legend, plot_sp_dist_maps)
+# 
 save_sp_maps <- function(plot, names) {
-  names <- glue("{output02}{names}.png")
-  ggsave(names, plot, device = "png", height = 4.5, width = 4, dpi = 300)
+   names <- glue("{output02}{names}.png")
+   ggsave(names, plot, device = "png", height = 4.5, width = 4, dpi = 300)
 }
+# 
+# sp_names <- c("map_SP", "map_DIST_TOTAL")
+# 
+# map2(sp_dist_maps, sp_names, save_sp_maps)
 
-sp_names <- c("map_SP", "map_DIST_TOTAL")
+dist_map <- taz %>% 
+  ggplot() + 
+  geom_sf(aes(fill = DIST_TOTAL), color = NA) +
+  theme_void() +
+  labs(fill = "Traveled\ndistances [km]:\n(Valid time)") +
+  theme(
+    legend.position = c(0.96, 0.21),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 9),
+    legend.key.size = unit(0.5, "cm")
+  )
 
-map2(sp_dist_maps, sp_names, save_sp_maps)
+save_sp_maps(dist_map, "map_dist")
 
 # Plotting remaining variables -------------------------------------------
 
+taz_bbox <- st_bbox(taz)
+taz_bbox[[3]] <- taz_bbox[[3]] + 4000
+
 plot_var <- function(var, title, palette) {
-  tm_shape(taz) + 
+  tm_shape(taz, bbox = taz_bbox) + 
     tm_fill(
       col = var, n = 6, 
       style = if_else(var == "DSC", "jenks", "quantile"), 
@@ -343,9 +359,9 @@ plot_var <- function(var, title, palette) {
     tm_borders(col = "black", lwd = 0.2) +
     tm_layout(frame = FALSE, legend.width = 0.5) + 
     tm_legend(
-      legend.position = c(0.75,0.00),
-      legend.title.size = 0.5, 
-      legend.text.size = 0.5
+      legend.position = c(0.69,0.00),
+      legend.title.size = 0.7, 
+      legend.text.size = 0.6
     )
 }
 
@@ -356,11 +372,11 @@ var <- c(
 title <- c(
   "Pop. density\n[inhab./km²]:", "Land use\ndiversity index:",
   "Density of intersections\n[no./km]:", 
-  "Density of speed cameras\n[no./km]:",
+  "Density of speed\ncameras [no./km]:",
   "Traffic signal density\n[no./km]:",
   "Proportion of\narterial roads:",
   "Street network density\n[km/km²]:",
-  "Density of commercial\nand services units [no./km²]:",
+  "Density of commercial\nand services units\n[no./km²]:",
   "Bus stop density\n[no./km]:",
   "Average income\n[BRL]:"
 )

@@ -33,7 +33,7 @@ calc_lisa <- function(var, taz) {
 }
 
 lisa_coefs <- map(gwr_ind_var, calc_lisa, gwr_chosen_model[["SDF"]])
-lisa_sp <- calc_lisa("SPEEDING", taz)
+lisa_sp <- calc_lisa("SP", taz_gwr)
 lisa_lm_sp <- calc_lisa("SP_LM", summary_gwr[["SDF"]])
 lisa_r2 <- calc_lisa("Local_R2", gwr_chosen_model[["SDF"]])
 
@@ -42,7 +42,7 @@ lisa_r2 <- calc_lisa("Local_R2", gwr_chosen_model[["SDF"]])
 make_lisa_maps <- function(lisa_taz, var) {
   
   # Legend and colors
-  label <- paste("LISA Cluster:\n", var, sep = "")
+  label <- paste("Local Moran\nClusters: ", var, sep = "")
   cluster_colors <- c(
     "#eeeeee", "#FF0000", "#0000FF", "#a7adf9", "#f4ada8", "#464646", "#999999"
   )

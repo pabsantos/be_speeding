@@ -43,6 +43,18 @@ drivers_full <- reduce(drivers, bind_rows)
 
 rm(drivers)
 
+# drivers_full %>% 
+#   group_by(driver) %>% 
+#   drop_na(date) %>% 
+#   summarise(
+#     min_date = min(date),
+#     max_date = max(date)
+#   ) %>% 
+#   mutate(
+#     duration = lubridate::interval(min_date, max_date),
+#     days = duration / lubridate::days(1)
+#   )
+
 # Extracting full time traveled --------------------------------------------
 
 calc_full_time <- function(table) {
@@ -116,7 +128,7 @@ filter_valid_time <- function(points) {
 }
 
 cod <- 4106902
-cwb <- read_municipality(code_muni = cod, year = 2010)
+cwb <- geobr::read_municipality(code_muni = cod, year = 2010)
 
 axis <- st_read(glue("{input}/eixo_osm+ippuc_lim_velocidade.gpkg"))
 
