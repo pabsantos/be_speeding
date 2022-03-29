@@ -210,6 +210,21 @@ calc_spd_dist <- function(lines) {
 
 spd_dist <- calc_spd_dist(drivers_lines_sf)
 
+# Dist summary ------------------------------------------------------------
+
+valid_trips <- unique(drivers_lines_sf$id) %>% length()
+
+valid_dist_summary <- drivers_lines_sf %>% 
+  mutate(dist = st_length(wkt)) %>%
+  st_drop_geometry() %>% 
+  group_by(id) %>% 
+  summarise(dist = sum(units::drop_units(dist)))
+
+valid_trip_summary <- drivers_lines_sf %>% 
+  st_drop_geometry() %>% 
+  group_by(driver) %>% 
+  summarise(trips = n_distinct(id))
+
 # Gathering and exporting results -----------------------------------------
 
 results <- c(

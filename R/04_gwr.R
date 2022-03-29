@@ -305,7 +305,13 @@ r2_map <- tm_shape(taz) +
   tm_borders(col = "black", lwd = 0.1) +
   tm_shape(gwr_chosen_model[["SDF"]]) +
   tm_fill(
-    col = "Local_R2", n = 8, style = "quantile", palette = "RdBu", midpoint = 0
+    col = "Local_R2", 
+    n = 8, 
+    style = "quantile",
+    palette = "RdBu", 
+    midpoint = 0,
+    title = "Local R²",
+    colorNA = "#b3b3b3"
   ) +
   tm_borders(col = "black", lwd = 0.2) +
   tm_layout(frame = FALSE, legend.width = 0.6) + 
@@ -325,7 +331,7 @@ taz_results_table <- gwr_chosen_model[["SDF"]]@data %>%
     . < 0 ~ "neg",
     TRUE ~ NA_character_))) %>% 
   pivot_longer(
-    cols = all_of(gwr_ind_var), names_to = "variables", values_to = "count"
+    cols = Intercept:DIS, names_to = "variables", values_to = "count"
   ) %>% 
   mutate(n = 1) %>% 
   group_by(variables, count) %>% 
@@ -349,15 +355,29 @@ write_csv(taz_results_table, glue("{output04}taz_results_table.csv"))
 taz_plot <- taz_gwr %>% st_as_sf()
 
 sp_map <- ggplot() + 
-  geom_sf(data = cwb, fill = "grey70", color = NA) +
+  geom_sf(data = taz, fill = "grey70", color = "grey50", lwd = 0.1) +
   geom_sf(data = taz_plot, aes(fill = SP), color = NA) +
   theme_void() +
   labs(fill = "SP") +
   theme(
-    legend.position = c(0.90, 0.19),
+    legend.position = c(0.93, 0.21),
     legend.text = element_text(size = 8),
     legend.title = element_text(size = 9),
     legend.key.size = unit(0.5, "cm")
   )
 
-save_sp_maps(sp_map, "map_SP.png")
+save_sp_maps(sp_map, "map_SP")
+
+# Coefficient summary -----------------------------------------------------
+
+coef_summary <- gwr_chosen_model[["SDF"]]@data %>% 
+  select(Intercept:DIS) %>%
+  pivot_longer(Intercept:DIS, names_to = "VAR", values_to = "VALUE") %>% 
+  group_by(VAR) %>% 
+  summarise(
+    min = min(VALUE),
+    `1q` = quantile(VALUE, 0.25),
+    median = median(VALUE),
+    `3q` = quantile(VALUE, 0.75),
+    max = max(VALUE)
+  )

@@ -242,7 +242,7 @@ rm(bus_stops)
 
 # Density of speed cameras ------------------------------------------------
 
-spd_cameras <- st_read(glue("{input}/speed_traps.shp")) # UPDATE SOURCE FILE
+spd_cameras <- st_read(glue("{input}/speed_traps.shp"))
 
 taz_dsc <- spd_cameras %>% 
   st_transform(crs = 31982) %>% 
@@ -257,7 +257,7 @@ taz <- taz %>%
   select(-CAMERAS)
 
 rm(taz_dsc)
-rm(spd_cameras)
+#rm(spd_cameras)
 
 # Speeding, exposure and traveled distance --------------------------------
 
@@ -322,7 +322,7 @@ taz <- taz %>%
 # 
 save_sp_maps <- function(plot, names) {
    names <- glue("{output02}{names}.png")
-   ggsave(names, plot, device = "png", height = 4.5, width = 4, dpi = 300)
+   ggsave(names, plot, device = "png", height = 3.5, width = 3, dpi = 300)
 }
 # 
 # sp_names <- c("map_SP", "map_DIST_TOTAL")

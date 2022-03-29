@@ -36,6 +36,7 @@ lisa_coefs <- map(gwr_ind_var, calc_lisa, gwr_chosen_model[["SDF"]])
 lisa_sp <- calc_lisa("SP", taz_gwr)
 lisa_lm_sp <- calc_lisa("SP_LM", summary_gwr[["SDF"]])
 lisa_r2 <- calc_lisa("Local_R2", gwr_chosen_model[["SDF"]])
+lisa_sd <- calc_lisa("SP_LSD", summary_gwr[["SDF"]])
 
 # Plotting LISA maps ------------------------------------------------------
 
@@ -66,8 +67,9 @@ make_lisa_maps <- function(lisa_taz, var) {
 
 lisa_coefs_maps <- map2(lisa_coefs, gwr_ind_var, make_lisa_maps)
 lisa_sp_maps <- make_lisa_maps(lisa_sp, "SP")
-lisa_lm_sp_maps <- make_lisa_maps(lisa_lm_sp, "Local mean SP")
+lisa_lm_sp_maps <- make_lisa_maps(lisa_lm_sp, "\nLocal mean SP")
 lisa_r2_maps <- make_lisa_maps(lisa_r2, "Local R²")
+lisa_lsd_sp_maps <- make_lisa_maps(lisa_sd, "Local SD")
 
 # Saving LISA maps --------------------------------------------------------
 
@@ -93,6 +95,7 @@ map2(lisa_coefs_maps, gwr_ind_var, save_lisa_maps)
 save_lisa_maps(lisa_sp_maps, "SP")
 save_lisa_maps(lisa_lm_sp_maps, "LM_SP")
 save_lisa_maps(lisa_r2_maps, "local_R2")
+save_lisa_maps(lisa_lsd_sp_maps, "LSD_SP")
 
 # Creating clusters data --------------------------------------------------
 

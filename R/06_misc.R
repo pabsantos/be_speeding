@@ -72,6 +72,7 @@ road_cwb_plot <- ggplot() +
     legend.key.height = unit(0.4, "cm")
   )
 
+
 ggsave(
   filename = glue("{output06}road_cwb_map.png"), plot = road_cwb_plot,
   width = 6, height = 4.5, dpi = 300, device = "png"
@@ -134,7 +135,7 @@ ggsave(
   device = "png"
 )
 
-# Zona calma --------------------------------------------------------------
+# Zona calma + clusters ------------------------------------------------------
 
 area_calma <- st_read(glue("{input}/areacalma.shp"))
 cwb_blocks <- download_sf(
@@ -145,40 +146,79 @@ cwb_blocks <- download_sf(
 area_calma <- area_calma %>% 
   st_transform(crs = 4674)
 
-## bbox area calma
-bb_area <- area_calma %>% 
-  st_bbox() %>% 
-  st_as_sfc()
+lisa_sp_shape <- lisa_sp %>% 
+  group_by(cluster) %>% 
+  summarise() %>% 
+  filter(cluster %in% c("High-High", "Low-Low")) %>% 
+  mutate(cluster = as.character(cluster))
 
-area_plot <- tm_shape(cwb, bbox = bb_area) +
-  tm_borders(col = "grey20") +
-  tm_fill(col = "white") +
+bbox_ac <- st_bbox(lisa_sp_shape)
+bbox_ac["ymin"] <- bbox_ac["ymin"] - 3000
+bbox_ac["xmin"] <- bbox_ac["xmin"] - 1000
+
+sp_area_calma <- tm_shape(cwb, bbox = bbox_ac) +
+  tm_fill(col = "grey80") +
+  tm_shape(st_as_sf(taz_gwr)) +
+  tm_polygons(col = "white", border.col = "grey70") +
+  tm_shape(lisa_sp_shape) +
+  tm_fill(
+    col = "cluster", 
+    alpha = 0.3,
+    palette = c("#ff0004", "#0700fa"),
+    title = "SP clusters:"
+  ) +
+  tm_borders(col = "grey60") +
   tm_shape(area_calma) +
-  tm_borders(col = "red", lty = "dashed", lwd = 2) +
-  tm_shape(cwb_blocks) +
-  tm_borders(col = "grey60", lwd = 0.5) +
-  tm_fill(col = "grey90")
+  tm_borders(col = "#1b9e77", lwd = 1.5) +
+  tm_fill(
+    col = "id", 
+    palette = "#1b9e77", 
+    alpha = 0.6, 
+    title = "---",
+    labels = "Área Calma"
+  ) + 
+  tm_scale_bar(position = c("left", "top"), width = 0.14) +
+  tm_layout(legend.position = c("left", "bottom"))
 
-city_area_plot <- tm_shape(cwb_blocks) +
-  tm_borders(col = "grey60", lwd = 0.2) +
-  tm_shape(cwb) +
-  tm_borders(col = "grey30") +
-  tm_shape(bb_area) +
-  tm_borders(col = "red", lwd = 2)
-  
-## creating viewport
-vp <- grid::viewport(0.11, 0.29, width = 0.6, height = 0.6)
-
-## saving plot
 tmap_save(
-  tm = area_plot, 
-  filename = glue("{output06}area_calma.pdf"), 
-  units = "in", 
-  width = 6, 
-  height = 3.5, 
-  insets_tm = city_area_plot,
-  insets_vp = vp
+  tm = sp_area_calma, filename = glue("{output06}sp_area_calma.png"),
+  units = "in", height = 4.5, width = 4, dpi = 300
 )
+
+# ## bbox area calma
+# bb_area <- area_calma %>% 
+#   st_bbox() %>% 
+#   st_as_sfc()
+# 
+# area_plot <- tm_shape(cwb, bbox = bb_area) +
+#   tm_borders(col = "grey20") +
+#   tm_fill(col = "white") +
+#   tm_shape(area_calma) +
+#   tm_borders(col = "red", lty = "dashed", lwd = 2) +
+#   tm_shape(cwb_blocks) +
+#   tm_borders(col = "grey60", lwd = 0.5) +
+#   tm_fill(col = "grey90")
+# 
+# city_area_plot <- tm_shape(cwb_blocks) +
+#   tm_borders(col = "grey60", lwd = 0.2) +
+#   tm_shape(cwb) +
+#   tm_borders(col = "grey30") +
+#   tm_shape(bb_area) +
+#   tm_borders(col = "red", lwd = 2)
+#   
+# ## creating viewport
+# vp <- grid::viewport(0.11, 0.29, width = 0.6, height = 0.6)
+# 
+# ## saving plot
+# tmap_save(
+#   tm = area_plot, 
+#   filename = glue("{output06}area_calma.pdf"), 
+#   units = "in", 
+#   width = 6, 
+#   height = 3.5, 
+#   insets_tm = city_area_plot,
+#   insets_vp = vp
+# )
   
 # Land zoning -------------------------------------------------------------
 
@@ -284,7 +324,7 @@ tmap_save(
 
 # Participants address ----------------------------------------------------
 
-address <- read_excel("input/address.xlsx") %>% 
+address <- read_excel("data/input/drivers_address.xlsx") %>% 
   st_as_sf(coords = c("LONG", "LAT")) %>% 
   st_set_crs(4674)
 
@@ -309,54 +349,206 @@ tmap_save(
   width = 4.5, dpi = 300
 )
 
-# Combining and saving spatial data ---------------------------------------
+# Local mean cluster + roads ---------------------------------------------
 
-gwr_coefs_selection <- function(gwr_data) {
-  gwr_data %>% 
-    st_as_sf() %>% 
-    select(Intercept:DIS, Local_R2) %>% 
-    rename_with(~str_c("coef_", .), PAR:DIS)
-}
-
-extract_lisa_clusters <- function(lisa_data, names) {
-  lisa_data %>% 
-    select(cluster) %>% 
-    rename_with(~paste0("cluster_", names), cluster)
-}
-
-coef_data <- gwr_chosen_model$SDF %>% gwr_coefs_selection()
-
-lisa_data <- append(lisa_coefs, list(lisa_sp, lisa_lm_sp, lisa_r2))
-
-lisa_cluster_names <- c(gwr_ind_var, "SP", "LM_SP", "Local_R2")
-
-clusters_data <- map2(lisa_data, lisa_cluster_names, extract_lisa_clusters)
-
-taz %>% 
-  st_join(st_centroid(clusters_data[[1]])) %>% 
-  qtm(fill = "cluster_AVI")
-
-join_coef_data <- function(taz, data) {
-  taz %>% 
-    st_join(st_centroid(data))
-}
-
-taz <- join_coef_data(taz, coef_data)
+lisa_lm_sp_shape <- lisa_lm_sp %>% 
+  select(cluster) %>% 
+  group_by(cluster) %>% 
+  summarise() %>% 
+  filter(cluster %in% c("High-High", "Low-Low"))
 
 
-join_cluster_data <- function(taz, data) {
-  taz %>% 
-    st_join(st_centroid(data)) %>% 
-    select(starts_with("cluster")) %>% 
-    st_drop_geometry()
-}
+lisa_lmsp_roadctb <- ggplot() +
+  geom_sf(data = cwb, fill = "white") +
+  geom_sf(
+    data = road_cwb, aes(
+      color = HIERARQUIA, size = HIERARQUIA, alpha = HIERARQUIA
+    )
+  ) +
+  theme_void() +
+  scale_color_manual(values = c("red", "darkgreen", "orange", "grey")) +
+  scale_alpha_manual(values = c(1, 0.9, 0.9, 0.6)) +
+  scale_size_manual(values = c(0.4, 0.3, 0.2, 0.1)) +
+  labs(
+    color = "Road category:",
+    alpha = "Road category:",
+    size = "Road category:"
+  ) +
+  theme(
+    legend.position = c(1.05, 0.2), 
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    legend.key.height = unit(0.4, "cm")
+  ) +
+  geom_sf(
+    data = lisa_lm_sp_shape, 
+    color = NA,
+    lwd = 0.1,
+    alpha = 0.3,
+    aes(fill = cluster)
+  ) +
+  labs(fill = "SP local mean cluster:") +
+  scale_fill_manual(values = c("#ff0004", "#0700fa"))
 
-taz_cluster_data <- map(clusters_data, ~join_cluster_data(taz, data = .x))
+ggsave(
+  filename = glue("{output06}lisa_lmsp_roadctb.png"), 
+  plot = lisa_lmsp_roadctb,
+  width = 6, 
+  height = 4.5, 
+  dpi = 300, 
+  device = "png"
+)
 
-taz_cluster_data %>% reduce(bind_cols)
+# SP cluster + roads ------------------------------------------------------
 
-taz <- bind_cols(taz, taz_cluster_data)
+lisa_sp_roadctb <- ggplot() +
+  geom_sf(data = cwb, fill = "white") +
+  geom_sf(
+    data = road_cwb, aes(
+      color = HIERARQUIA, size = HIERARQUIA, alpha = HIERARQUIA
+    )
+  ) +
+  theme_void() +
+  scale_color_manual(values = c("red", "darkgreen", "orange", "grey")) +
+  scale_alpha_manual(values = c(1, 0.9, 0.9, 0.6)) +
+  scale_size_manual(values = c(0.4, 0.3, 0.2, 0.1)) +
+  labs(
+    color = "Road category:",
+    alpha = "Road category:",
+    size = "Road category:",
+    fill = "SP clusters:"
+  ) +
+  theme(
+    legend.position = c(1.00, 0.2), 
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    legend.key.height = unit(0.4, "cm")
+  ) +
+  geom_sf(
+    data = lisa_sp_shape,
+    lwd = 0.1,
+    alpha = 0.3,
+    color = NA,
+    aes(fill = cluster)
+  ) +
+  scale_fill_manual(values = c("#ff0004", "#0700fa"))
 
-st_write(taz, "data/output/06/taz_data.gpkg")
+ggsave(
+  filename = glue("{output06}lisa_sp_roadctb.png"), 
+  plot = lisa_sp_roadctb,
+  width = 6, 
+  height = 4.5, 
+  dpi = 300, 
+  device = "png"
+)
 
-st_write()
+# # Combining and saving spatial data ---------------------------------------
+# 
+# gwr_coefs_selection <- function(gwr_data) {
+#   gwr_data %>% 
+#     st_as_sf() %>% 
+#     select(Intercept:DIS, Local_R2) %>% 
+#     rename_with(~str_c("coef_", .), PAR:DIS)
+# }
+# 
+# extract_lisa_clusters <- function(lisa_data, names) {
+#   lisa_data %>% 
+#     select(cluster) %>% 
+#     rename_with(~paste0("cluster_", names), cluster)
+# }
+# 
+# coef_data <- gwr_chosen_model$SDF %>% gwr_coefs_selection()
+# 
+# lisa_data <- append(lisa_coefs, list(lisa_sp, lisa_lm_sp, lisa_r2))
+# 
+# lisa_cluster_names <- c(gwr_ind_var, "SP", "LM_SP", "Local_R2")
+# 
+# clusters_data <- map2(lisa_data, lisa_cluster_names, extract_lisa_clusters)
+# 
+# taz %>% 
+#   st_join(st_centroid(clusters_data[[1]])) %>% 
+#   qtm(fill = "cluster_AVI")
+# 
+# join_coef_data <- function(taz, data) {
+#   taz %>% 
+#     st_join(st_centroid(data))
+# }
+# 
+# taz <- join_coef_data(taz, coef_data)
+# 
+# 
+# join_cluster_data <- function(taz, data) {
+#   taz %>% 
+#     st_join(st_centroid(data)) %>% 
+#     select(starts_with("cluster")) %>% 
+#     st_drop_geometry()
+# }
+# 
+# taz_cluster_data <- map(clusters_data, ~join_cluster_data(taz, data = .x))
+# 
+# taz_cluster_data %>% reduce(bind_cols)
+# 
+# taz <- bind_cols(taz, taz_cluster_data)
+# 
+# st_write(taz, "data/output/06/taz_data.gpkg")
+# 
+# st_write()
+
+# IPPUC travel demand -----------------------------------------------------
+
+travel_demand <- read_csv2("data/input/deslocamento.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    zona_destino = as.character(zona_destino),
+    id_taz = str_sub(zona_destino, 1, -3)
+  ) %>%
+  group_by(id_taz) %>%
+  summarise(trips = n())
+
+taz_trips <- taz %>%
+  left_join(travel_demand, by = "id_taz") %>% 
+  select(id_taz, trips)
+
+od_plot <- ggplot() +
+  geom_sf(data = taz_trips, aes(fill = trips), color = NA) +
+  geom_sf(
+    data = lisa_sp_shape, 
+    aes(color = cluster), 
+    fill = NA,
+    lty = "solid",
+    lwd = 0.5
+  ) +
+  theme_void() +
+  labs(fill = "Trips:", color = "SP clusters:") +
+  theme(
+    legend.position = c(1.20, 0.32),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 9),
+    legend.key.size = unit(0.5, "cm"),
+  ) +
+  #scale_color_manual(values = c("#ff0004", "#0700fa")) +
+  scale_fill_distiller(palette = "Greys")
+
+ggsave(
+  "data/output/06/od_plot.png",
+  plot = od_plot,
+  device = "png",
+  height = 3.5,
+  width = 5,
+  dpi = 300
+)
+
+# Speed cameras and arterial ---------------------------------------------
+
+qtm(spd_cameras, dots.col = "Tipo")
+
+new_spd_cameras <- read_csv2("data/input/new_spd_cameras.csv")
+
+new_spd_cameras <- new_spd_cameras %>% 
+  st_as_sf(coords = c("long", "lat")) %>% 
+  st_set_crs(4674)
+
+tm_shape(spd_cameras) +
+  tm_dots(col = "green") +
+  tm_shape(new_spd_cameras) +
+  tm_dots(col = "red")

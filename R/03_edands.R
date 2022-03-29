@@ -147,6 +147,29 @@ sp_zones <- drivers_time_date %>%
   ) +
   theme(legend.position = "none")
 
+
+# Speeding summary (trips) ------------------------------------------------
+
+drivers_time_date %>% 
+  filter(IS_EXPOSURE == TRUE) %>% 
+  group_by(id, IS_SPEEDING) %>% 
+  summarise(DISTANCE = sum(DISTANCE)) %>% 
+  pivot_wider(names_from = IS_SPEEDING, values_from = DISTANCE) %>%
+  mutate(across(`FALSE`:`TRUE`, ~if_else(is.na(.x), 0, .x))) %>% 
+  mutate(speeding = `TRUE` / (`TRUE` + `FALSE`)) %>% 
+  pull(speeding) %>% sd()
+
+# Speeding summary (drivers) ----------------------------------------------
+
+drivers_time_date %>% 
+  filter(IS_EXPOSURE == TRUE) %>% 
+  group_by(driver, IS_SPEEDING) %>% 
+  summarise(DISTANCE = sum(DISTANCE)) %>% 
+  pivot_wider(names_from = IS_SPEEDING, values_from = DISTANCE) %>%
+  mutate(across(`FALSE`:`TRUE`, ~if_else(is.na(.x), 0, .x))) %>% 
+  mutate(speeding = `TRUE` / (`TRUE` + `FALSE`)) %>% 
+  pull(speeding) %>% sd()
+
 # Saving plots ------------------------------------------------------------
 
 plots <- list(dotw_dist, dotw_trips, dotw_sp, hotd_dist, hotd_sp, 
