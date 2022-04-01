@@ -540,15 +540,69 @@ ggsave(
 
 # Speed cameras and arterial ---------------------------------------------
 
-qtm(spd_cameras, dots.col = "Tipo")
-
 new_spd_cameras <- read_csv2("data/input/new_spd_cameras.csv")
 
-new_spd_cameras <- new_spd_cameras %>% 
+new_spd_cameras <- new_spd_cameras %>%
   st_as_sf(coords = c("long", "lat")) %>% 
-  st_set_crs(4674)
+  st_set_crs(4674) %>% 
+  mutate(Tipo = "radar")
+  
 
-tm_shape(spd_cameras) +
-  tm_dots(col = "green") +
-  tm_shape(new_spd_cameras) +
-  tm_dots(col = "red")
+spd_cameras_full <- bind_rows(spd_cameras, new_spd_cameras)
+
+cameras_buffer <- spd_cameras %>%
+  st_transform(crs = 31982) %>% 
+  st_buffer(dist = 200) %>% 
+  st_union()
+
+## Mapping buffers
+
+cam_buffer_plot <- ggplot() +
+  geom_sf(data = cwb, fill = "white") +
+  geom_sf(
+    data = road_cwb, aes(
+      color = HIERARQUIA, size = HIERARQUIA, alpha = HIERARQUIA
+    )
+  ) +
+  geom_sf(
+    data = cameras_buffer, 
+    aes(fill = "Speed cameras\nbuffer (200m)"),
+    color = NA,
+    alpha = 0.5
+  ) +
+  theme_void() +
+  scale_color_manual(values = c("red", "darkgreen", "orange", "grey")) +
+  scale_alpha_manual(values = c(1, 0.9, 0.9, 0.6)) +
+  scale_size_manual(values = c(0.4, 0.3, 0.2, 0.1)) +
+  scale_fill_manual(values = "midnightblue") +
+  labs(
+    color = "Road category:",
+    alpha = "Road category:",
+    size = "Road category:",
+    fill = ""
+  ) +
+  theme(
+    legend.position = c(1.00, 0.2), 
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    legend.key.height = unit(0.4, "cm")
+  )
+
+ggsave(
+  "data/output/06/cam_buffer_plot.png",
+  plot = cam_buffer_plot,
+  device = "png",
+  height = 4.5,
+  width = 6,
+  dpi = 300
+)
+
+## Counting cameras per hierarchy
+
+spd_cameras %>% 
+  st_transform(crs = 31982) %>% 
+  st_join(st_buffer(road_cwb, dist = 20)) %>% 
+  st_drop_geometry() %>% 
+  group_by(HIERARQUIA) %>% 
+  summarise(n = n())
+
