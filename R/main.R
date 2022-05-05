@@ -1,6 +1,7 @@
 library(ndsbr)
 library(tidyverse)
 library(sf)
+library(tmap)
 
 # NDS sample --------------------------------------------------------------
 
@@ -8,21 +9,36 @@ source("R/nds.R")
 
 drivers <- load_sample()
 
-full_time <- nds_calc_time(drivers, by = DRIVER, units = "hours") %>% 
-  pull(TIME) %>% 
-  sum()
+full_time <- drivers %>% calc_time()
 
 drivers_lines <- drivers %>% nds_create_lines(x = LONG, y = LAT)
 
-full_distance <- drivers_lines %>% nds_calc_dist(
-  geom = wkt_lines,
-  by = DRIVER,
-  units = "kilometers"
-  ) %>% 
-  pull(DIST) %>% 
-  sum()
+full_distance <- drivers_lines %>% calc_dist()
 
 drivers_valid <- drivers %>% 
   filter(CIDADE == "Curitiba", LIMITE_VEL != "NPI", VALID_TIME == "Yes")
 
-valid_time %>% nds_calc_time(by = DRIVER, )
+valid_time <- drivers_valid %>% calc_time()
+
+drivers_valid_lines <- drivers_valid %>% 
+  nds_create_lines(x = LONG, y = LAT)
+
+valid_distance <- drivers_valid_lines %>% calc_dist()
+
+exp_distance <- drivers_valid_lines %>% calc_exp_dist(exp = 10)
+
+spd_distance <- drivers_valid_lines %>% calc_spd_dist(spd = 5)
+
+valid_trips <- unique(drivers_valid_lines$ID) %>% length()
+
+valid_distance_summary <- drivers_valid_lines %>% extract_dist_summary()
+
+valid_trips_summary <- drivers_valid_lines %>% extract_trips_summary()
+
+save_nds_results()
+
+rm(drivers_lines)
+
+# TAZ construction --------------------------------------------------------
+
+
