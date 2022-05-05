@@ -82,3 +82,7 @@ var_maps <- taz %>% plot_var_maps()
 
 var_maps %>% save_var_maps()
 
+# EDA ---------------------------------------------------------------------
+
+source("R/eda.R")
+
