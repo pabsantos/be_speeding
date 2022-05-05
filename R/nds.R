@@ -24,3 +24,17 @@ load_sample <- function() {
     return(drivers)
   }
 }
+
+calc_dist <- function(data) {
+  data %>% 
+    nds_calc_dist(geom = wkt_lines, by = DRIVER, units = "kilometers") %>% 
+    pull(DIST) %>% 
+    sum()
+}
+
+calc_time <- function(data) {
+  data %>% 
+    nds_calc_time(by = DRIVER, units = "hours") %>% 
+    pull(TIME) %>% 
+    sum()
+}

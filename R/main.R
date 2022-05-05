@@ -2,6 +2,8 @@ library(ndsbr)
 library(tidyverse)
 library(sf)
 
+# NDS sample --------------------------------------------------------------
+
 source("R/nds.R")
 
 drivers <- load_sample()
@@ -20,5 +22,7 @@ full_distance <- drivers_lines %>% nds_calc_dist(
   pull(DIST) %>% 
   sum()
 
-drivers_points <- drivers %>% 
-  nds_create_points(x = LONG, y = LAT) 
+drivers_valid <- drivers %>% 
+  filter(CIDADE == "Curitiba", LIMITE_VEL != "NPI", VALID_TIME == "Yes")
+
+valid_time %>% nds_calc_time(by = DRIVER, )
