@@ -186,5 +186,5 @@ save_plots <- function(plots, names) {
 
 map2(plots, names, save_plots)
 
-rm(drivers_lines_sf)
-rm(drivers_time_date)
+#rm(drivers_lines_sf)
+#rm(drivers_time_date)

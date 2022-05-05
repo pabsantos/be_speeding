@@ -128,7 +128,7 @@ filter_valid_time <- function(points) {
 }
 
 cod <- 4106902
-cwb <- geobr::read_municipality(code_muni = cod, year = 2010)
+cwb <- read_municipality(code_muni = cod, year = 2010)
 
 axis <- st_read(glue("{input}/eixo_osm+ippuc_lim_velocidade.gpkg"))
 

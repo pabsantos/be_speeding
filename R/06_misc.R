@@ -152,7 +152,7 @@ lisa_sp_shape <- lisa_sp %>%
   filter(cluster %in% c("High-High", "Low-Low")) %>% 
   mutate(cluster = as.character(cluster))
 
-bbox_ac <- st_bbox(lisa_sp_shape)
+ bbox_ac <- st_bbox(lisa_sp_shape)
 bbox_ac["ymin"] <- bbox_ac["ymin"] - 3000
 bbox_ac["xmin"] <- bbox_ac["xmin"] - 1000
 
@@ -219,7 +219,7 @@ tmap_save(
 #   insets_tm = city_area_plot,
 #   insets_vp = vp
 # )
-  
+
 # Land zoning -------------------------------------------------------------
 
 ambiental <- "Environmental Protection Area"
@@ -606,3 +606,17 @@ spd_cameras %>%
   group_by(HIERARQUIA) %>% 
   summarise(n = n())
 
+# Counting distance per hierarchy in SP clusters --------------------------
+
+lines_cluster <- drivers_lines_sf %>%
+  st_transform(crs = 31982) %>% 
+  st_join(lisa_sp_shape) %>% 
+  st_join(st_buffer(road_cwb["HIERARQUIA"], dist = 10)) %>% 
+  drop_na(cluster, HIERARQUIA)
+
+lines_cluster <- lines_cluster %>% 
+  group_by(cluster, HIERARQUIA) %>% 
+  summarise(dist = sum(DISTANCE)) %>% 
+  pivot_wider(names_from = cluster, values_from = dist)
+
+#write_csv(lines_cluster, "data/output/06/dist_hierarquia.csv")
