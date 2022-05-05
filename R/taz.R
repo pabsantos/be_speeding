@@ -262,3 +262,83 @@ remove_na_unit <- function(taz_data) {
     mutate_if(is.numeric, units::drop_units) %>% 
     replace(is.na(.), 0)
 }
+
+plot_dist_map <- function(taz_data) {
+  taz_data %>% 
+    ggplot() + 
+    geom_sf(aes(fill = DIST_TOTAL), color = NA) +
+    theme_void() +
+    labs(fill = "Traveled\ndistances [km]:\n(Valid time)") +
+    theme(
+      legend.position = c(1.06, 0.24),
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 9),
+      legend.key.size = unit(0.5, "cm")
+    )
+}
+
+plot_var_maps <- function(taz_data) {
+  taz_bbox <- st_bbox(taz_data)
+  taz_bbox[[3]] <- taz_bbox[[3]] + 4000
+  
+  plot_var <- function(var, title, palette) {
+    tm_shape(taz, bbox = taz_bbox) + 
+      tm_fill(
+        col = var, n = 6, 
+        style = if_else(var == "DSC", "jenks", "quantile"), 
+        palette = palette,
+        title = title
+      ) +
+      tm_borders(col = "black", lwd = 0.2) +
+      tm_layout(frame = FALSE, legend.width = 0.5) + 
+      tm_legend(
+        legend.position = c(0.69,0.00),
+        legend.title.size = 0.7, 
+        legend.text.size = 0.6
+      )
+  }
+  
+  var <- c(
+    "PD", "LDI", "DIS", "DSC", "TSD", "PAR", "SND", "DCSU", "BSD", "AVI"
+  )
+  
+  title <- c(
+    "Pop. density\n[inhab./km²]:", "Land use\ndiversity index:",
+    "Density of intersections\n[no./km]:", 
+    "Density of speed\ncameras [no./km]:",
+    "Traffic signal density\n[no./km]:",
+    "Proportion of\narterial roads:",
+    "Street network density\n[km/km²]:",
+    "Density of commercial\nand services units\n[no./km²]:",
+    "Bus stop density\n[no./km]:",
+    "Average income\n[BRL]:"
+  )
+  
+  palette <- c(
+    "Blues", "Greens", "Reds", "Greys", "Oranges", "Purples",
+    "YlGn", "BuGn", "YlGnBu", "PuBu"
+  )
+  
+  var_maps <- pmap(list(var, title, palette), plot_var)
+}
+
+save_var_maps <- function(var_maps) {
+  var <- c(
+    "PD", "LDI", "DIS", "DSC", "TSD", "PAR", "SND", "DCSU", "BSD", "AVI"
+  )
+  
+  save_maps <- function(var_maps, names) {
+    file_name <- paste0("plot/taz_", names, ".png")
+    
+    tmap_save(
+      tm = var_maps,
+      filename = file_name,
+      height = 3.5,
+      width = 3,
+      units = "in",
+      dpi = 300
+    )
+  }
+  
+  map2(var_maps, var, save_maps)
+}

@@ -67,4 +67,18 @@ if (file.exists("data/taz_complete.gpkg")) {
   rm(census_data)
 }
 
+dist_map <- taz %>% plot_dist_map()
+
+ggsave(
+  filename = "plot/taz_dist.png", 
+  dist_map,
+  device = "png",
+  height = 3.5,
+  width = 3.5,
+  dpi = 300
+)
+
+var_maps <- taz %>% plot_var_maps()
+
+var_maps %>% save_var_maps()
 
