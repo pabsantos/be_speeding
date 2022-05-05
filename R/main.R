@@ -43,22 +43,28 @@ rm(drivers_lines)
 
 source("R/taz.R")
 
-taz <- load_taz()
-
-census_data <- load_census_data()
-
-taz <- add_census_data(taz, census_data) %>% 
-  add_snd() %>% 
-  add_par() %>% 
-  add_dis() %>% 
-  add_tsd() %>% 
-  add_dcsu() %>% 
-  add_ldi() %>% 
-  add_bsd() %>% 
-  add_dsc() %>% 
-  add_spd_exp_dist() %>% 
-  remove_na_unit()
-
-rm(census_data)
+if (file.exists("data/taz_complete.gpkg")) {
+  taz <- st_read("data/taz_complete.gpkg")
+} else {
+  taz <- load_taz()
+  
+  census_data <- load_census_data()
+  
+  taz <- add_census_data(taz, census_data) %>% 
+    add_snd() %>% 
+    add_par() %>% 
+    add_dis() %>% 
+    add_tsd() %>% 
+    add_dcsu() %>% 
+    add_ldi() %>% 
+    add_bsd() %>% 
+    add_dsc() %>% 
+    add_spd_exp_dist() %>% 
+    remove_na_unit()
+  
+  st_write(taz, "data/taz_complete.gpkg")
+  
+  rm(census_data)
+}
 
 
