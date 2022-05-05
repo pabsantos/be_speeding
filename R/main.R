@@ -41,4 +41,24 @@ rm(drivers_lines)
 
 # TAZ construction --------------------------------------------------------
 
+source("R/taz.R")
+
+taz <- load_taz()
+
+census_data <- load_census_data()
+
+taz <- add_census_data(taz, census_data) %>% 
+  add_snd() %>% 
+  add_par() %>% 
+  add_dis() %>% 
+  add_tsd() %>% 
+  add_dcsu() %>% 
+  add_ldi() %>% 
+  add_bsd() %>% 
+  add_dsc() %>% 
+  add_spd_exp_dist() %>% 
+  remove_na_unit()
+
+rm(census_data)
+
 
