@@ -20,8 +20,7 @@ drivers_valid <- drivers %>%
 
 valid_time <- drivers_valid %>% calc_time()
 
-drivers_valid_lines <- drivers_valid %>% 
-  nds_create_lines(x = LONG, y = LAT)
+drivers_valid_lines <- drivers_valid %>% nds_create_lines(x = LONG, y = LAT)
 
 valid_distance <- drivers_valid_lines %>% calc_dist()
 
@@ -85,4 +84,18 @@ var_maps %>% save_var_maps()
 # EDA ---------------------------------------------------------------------
 
 source("R/eda.R")
+
+drivers_time_date <- drivers_valid_lines %>% 
+  transform_km() %>%
+  extract_time_date()
+
+dotw_dist <- drivers_time_date %>% plot_dotw_dist()
+
+dotw_trips <- drivers_time_date %>% plot_dotw_trips()
+
+hotd_dist <- drivers_time_date %>% plot_hotd_dist()
+
+hotd_trips <- drivers_time_date %>% plot_hotd_trips()
+
+hotd_sp <- drivers_time_date %>% plot_hotd_sp()
 
