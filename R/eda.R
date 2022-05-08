@@ -82,3 +82,25 @@ plot_hotd_sp <- function(driver_data) {
     labs(x = "Hour of the day", y = "SP") +
     theme_minimal()
 }
+
+plot_dotw_sp <- function(driver_data) {
+  driver_data %>% 
+    mutate(
+      IS_EXPOSURE = if_else(as.numeric(LIMITE_VEL) - SPD_KMH < 10, TRUE, FALSE),
+      IS_SPEEDING = if_else(SPD_KMH - as.numeric(LIMITE_VEL) > 5, TRUE, FALSE)
+    ) %>%
+    filter(IS_EXPOSURE == TRUE) %>% 
+    group_by(dow, IS_SPEEDING) %>% 
+    summarise(DISTANCE = sum(DISTANCE)) %>% 
+    pivot_wider(names_from = IS_SPEEDING, values_from = DISTANCE) %>% 
+    mutate(SPEEDING = `TRUE` / (`TRUE` + `FALSE`)) %>% 
+    ggplot(aes(x = dow, y = SPEEDING)) +
+    geom_col() +
+    scale_y_continuous(minor_breaks = NULL, breaks = seq(0,0.5,0.1)) +
+    labs(x = "Day of the week", y = "SP") +
+    theme_minimal()
+}
+
+plot_richards_sp <- function(driver_data) {
+  
+}
