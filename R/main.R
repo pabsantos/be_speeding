@@ -2,6 +2,9 @@ library(ndsbr)
 library(tidyverse)
 library(sf)
 library(tmap)
+library(GGally)
+library(GWmodel)
+library(spdep)
 
 # NDS sample --------------------------------------------------------------
 
@@ -99,3 +102,72 @@ hotd_trips <- drivers_time_date %>% plot_hotd_trips()
 
 hotd_sp <- drivers_time_date %>% plot_hotd_sp()
 
+dotw_sp <- drivers_time_date %>% plot_dotw_sp()
+mm
+richards_sp <- drivers_time_date %>% plot_richards_sp()
+
+sp_trips_summary <- drivers_time_date %>% extract_sp_summary(ID)
+
+sp_driver_summary <- drivers_time_date %>% extract_sp_summary(DRIVER)
+
+save_eda_plots()
+
+# GWR ---------------------------------------------------------------------
+
+source("R/gwr.R")
+
+taz_gwr <- taz %>% arrange_taz()
+
+map_removal <- taz_gwr %>% plot_taz_removal()
+
+ggsave(
+  "plot/map_removal.png", 
+  plot = map_removal, 
+  width = 3,
+  height = 3.5,
+  device = "png",
+  dpi = 300
+)
+
+spear <- taz_gwr %>% plot_spear()
+
+ggsave(
+  filename = "plot/spear.png",
+  plot = spear,
+  device = "pdf",
+  width = 4.5,
+  height = 3.5,
+  dpi = 300
+)
+
+sample <- taz_gwr %>% calc_sample_size()
+write_csv(sample, "data/final_sample_size.csv")
+
+global_summary <- taz_gwr %>% 
+  calc_global_summary() %>% 
+  xtable::xtable()
+
+gwr_ind_var <- c(
+  "AVI", "PD", "SND", "PAR", "DIS", "TSD", "DCSU", "LDI", "BSD", "DSC"
+  )
+
+taz_gwr <- taz_gwr %>% 
+  select(
+    -neigh, -id_taz, -area, -road_length, -DIST_TOTAL, -DIST_EXP, -DIST_SPD
+  )
+
+gwr_model_results <- calc_gwr(taz_gwr, gwr_ind_var)
+
+gwr_diag_table <- extract_gwr_diag(gwr_model_results)
+
+mmc_results <- gwr_model_results %>% calc_moran()
+
+gwr_diag_table %>% 
+  left_join(mmc_results, by = c("kernel" = "model"))
+
+# Selecting best model -- manual process, check diagnostic (WIP)
+gwr_chosen_model <- gwr_model_results[[2]]
+
+taz_gwr_sp <- as(taz_gwr, "Spatial")
+
+gwr_summary <- extract_gwr_summary(taz_gwr_sp, gwr_chosen_model)
