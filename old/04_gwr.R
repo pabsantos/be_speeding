@@ -183,6 +183,7 @@ calc_moran <- function(gwr_results) {
   }
   
   gwr_mmc_results <- map(gwr_results, gwr_mmc)
+  
   global_mmc <- moran.mc(
     gwr_results[[1]][["lm"]]$residuals, lw, nsim = 999, alternative = "greater"
   )
