@@ -180,3 +180,116 @@ extract_gwr_summary <- function(taz, results) {
     quantile = TRUE
   )
 }
+
+plot_gwr_summary <- function() {
+  plot_summary <- function(vars, legend) {
+    tm_shape(taz) + 
+      tm_fill(col = "grey") + 
+      tm_borders(col = "black", lwd = 0.1) +
+      tm_shape(gwr_summary[["SDF"]]) + 
+      tm_fill(col = vars, n = 6, style = "quantile", title = legend) + 
+      tm_borders(col = "black", lwd = 0.2) + 
+      tm_layout(frame = FALSE) + 
+      tm_legend(
+        legend.position = c(0.82,0.00),
+        legend.title.size = 0.8, 
+        legend.text.size = 0.6
+      )
+  }
+  summary_vars <- c("SP_LM", "SP_LSD")
+  summary_legend <- c("Local mean", "Local Std. deviation")
+  
+  gwss_maps <- map2(summary_vars, summary_legend, plot_summary)
+  return(gwss_maps)
+}
+
+plot_gwr_results <- function(var) {
+  plot <- function(var) {
+    tm_shape(taz) + 
+      tm_fill(col = "grey") + 
+      tm_borders(col = "black", lwd = 0.1) +
+      tm_shape(gwr_chosen_model[["SDF"]]) +
+      tm_fill(
+        col = var, n = 6, style = "quantile", palette = "-BrBG", midpoint = 0
+      ) +
+      tm_borders(col = "black", lwd = 0.2) +
+      tm_layout(frame = FALSE, legend.width = 0.5) + 
+      tm_legend(
+        legend.position = c(0.75,0.00),
+        legend.title.size = 0.8, 
+        legend.text.size = 0.6
+      )
+  }
+  
+  gwr_maps <- map(var, plot)
+  return(gwr_maps)
+}
+
+plot_local_r2 <- function(gwr_chosen_model) {
+  tm_shape(taz) + 
+    tm_fill(col = "grey") + 
+    tm_borders(col = "black", lwd = 0.1) +
+    tm_shape(gwr_chosen_model[["SDF"]]) +
+    tm_fill(
+      col = "Local_R2", 
+      n = 8, 
+      style = "quantile",
+      palette = "RdBu", 
+      midpoint = 0,
+      title = "Local R²",
+      colorNA = "#b3b3b3"
+    ) +
+    tm_borders(col = "black", lwd = 0.2) +
+    tm_layout(frame = FALSE, legend.width = 0.6) + 
+    tm_legend(
+      legend.position = c(0.82,0.00),
+      legend.title.size = 0.8, 
+      legend.text.size = 0.6
+    )
+}
+
+count_taz_coef <- function(results) {
+  results %>% 
+    mutate(across(everything(), ~ case_when(
+      . >= 0 ~ "pos",
+      . < 0 ~ "neg",
+      TRUE ~ NA_character_))) %>% 
+    pivot_longer(
+      cols = Intercept:DIS, names_to = "variables", values_to = "count"
+    ) %>% 
+    mutate(n = 1) %>% 
+    group_by(variables, count) %>% 
+    summarise(n = sum(n)) %>% 
+    pivot_wider(names_from = count, values_from = n) %>% 
+    replace(is.na(.), 0) %>% 
+    mutate(
+      prop_neg = neg / (neg + pos),
+      prop_pos = pos / (neg + pos)
+    ) %>% 
+    arrange(-prop_neg) %>% 
+    mutate(
+      prop_pos = scales::percent(prop_pos),
+      prop_neg = scales::percent(prop_neg)
+    )
+}
+
+plot_sp <- function(taz_gwr_data) {
+  ggplot() + 
+    geom_sf(data = taz, fill = "grey70", color = "grey50", lwd = 0.1) +
+    geom_sf(data = taz_gwr_data, aes(fill = SP), color = NA) +
+    theme_void() +
+    labs(fill = "SP") +
+    scale_fill_distiller(palette = "Oranges", direction = 1) +
+    theme(
+      legend.position = c(0.93, 0.21),
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 9),
+      legend.key.size = unit(0.5, "cm")
+    )
+}
+
+calc_moran_sp <- function() {
+  nb <- poly2nb(gwr_chosen_model[["SDF"]], queen = TRUE)
+  lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
+  moran.mc(gwr_chosen_model[["SDF"]]$y, lw, nsim = 999, alternative = "greater")
+}
