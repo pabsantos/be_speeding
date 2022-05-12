@@ -308,3 +308,17 @@ ggsave(
   width = 6,
   dpi = 300
 )
+
+taz_sp <- extract_sp_groups(lisa_sp)
+wilcox_table <- calc_wilcox(taz_sp, gwr_ind_var, "cluster")
+write_csv(wilcox_table, "table/wilcox_table.csv")
+
+wilcox_hist <- plot_wilcox_hist()
+
+ggsave(
+  "plot/wilcox_hist.png", wilcox_hist, width = 6, height = 3.5, device = "png"
+)
+
+taz_par <- extract_par_groups(taz_gwr)
+wilcox_table_par <- calc_wilcox(taz_par, gwr_ind_var[gwr_ind_var != "PAR"], "group")
+write_csv(wilcox_table_par, "table/wilcox_table_par.csv")

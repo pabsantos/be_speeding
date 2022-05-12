@@ -359,31 +359,96 @@ plot_spd_cameras <- function() {
   return(cam_buffer_plot)
 }
 
-calc_wilcox <- function() {
-  lisa_sp_clusters <- lisa_sp %>% 
+extract_w <- function(index, results) {
+  w_value <- results[[index]][["statistic"]][["W"]]
+}
+
+extract_pvalue <- function(index, results) {
+  p_value <- results[[index]][["p.value"]]
+}
+
+extract_sp_groups <- function(data) {
+  data %>% 
     filter(cluster %in% c("Low-Low", "High-High"))
+}
+
+calc_wilcox <- function(group, vars, name) {
   
   wilcox_results <- map(
-    gwr_ind_var, 
-    ~wilcox.test(formula(paste0(.x, "~cluster")), data = lisa_sp_clusters)
+    vars, 
+    ~wilcox.test(formula(paste0(.x, "~", name)), data = group)
   )
   
-  extract_w <- function(index, results) {
-    w_value <- results[[index]][["statistic"]][["W"]]
-  }
-  
-  extract_pvalue <- function(index, results) {
-    p_value <- results[[index]][["p.value"]]
-  }
-  
-  w_values <- map(seq(1,10,1), ~extract_w(.x, wilcox_results)) %>% unlist()
-  p_values <- map(seq(1,10,1), ~extract_pvalue(.x, wilcox_results)) %>% unlist()
+  w_values <- map(
+    seq(1,length(vars),1),
+    ~extract_w(.x, wilcox_results)
+  ) %>% unlist()
+  p_values <- map(
+    seq(1,length(vars),1),
+    ~extract_pvalue(.x, wilcox_results)
+  ) %>% unlist()
   
   wilcox_table <- tibble(
-    variables = gwr_ind_var,
+    variables = vars,
     W = w_values,
     p_value = p_values
   )
   
   return(wilcox_table)
 }
+
+plot_wilcox_hist <- function() {
+  
+  selected_vars <- wilcox_table %>% 
+    filter(p_value < 0.05) %>% 
+    pull(variables)
+  
+  lisa_sp %>%
+    st_drop_geometry() %>% 
+    filter(cluster %in% c("Low-Low", "High-High")) %>% 
+    select(all_of(selected_vars), cluster) %>% 
+    pivot_longer(-cluster, names_to = "var", values_to = "values") %>%
+    mutate(
+      var = case_when(
+        var == "AVI" ~ "AVI [BRL]",
+        var == "DCSU" ~ "DCSU [no./km²]",
+        var == "DIS" ~ "DIS [no./km]",
+        var == "DSC" ~ "DSC [no./km]",
+        TRUE ~ "TSD [no./km]"
+      ),
+      cluster = if_else(
+        cluster == "Low-Low", 
+        paste0(
+          "Low-Low (n=",
+          lisa_sp$cluster[lisa_sp$cluster == "Low-Low"] %>% length(),
+          ")"
+        ),
+        paste0(
+          "High-High (n=",
+          lisa_sp$cluster[lisa_sp$cluster == "High-High"] %>% length(),
+          ")"
+        )
+      )
+    ) %>% 
+    ggplot(aes(x = cluster, y = values, fill = cluster)) +
+    geom_boxplot(lwd = 0.2, outlier.size = 0.1) +
+    facet_wrap(~var, scales = "free_y") +
+    theme_bw(base_size = 8) +
+    theme(legend.position = "none") +
+    labs(y = "Values", x = "Local Moran Cluster: SP")
+}
+
+extract_par_groups <- function(data) {
+  data %>% 
+    st_drop_geometry() %>%
+    select(AVI:DSC) %>% 
+    mutate(group = case_when(
+      PAR >= quantile(PAR, 0.75) ~ "high",
+      PAR <= quantile(PAR, 0.25) ~ "low",
+      TRUE ~ "no_group"
+    )) %>% 
+    select(-PAR) %>% 
+    filter(group != "no_group")
+}
+
+  
