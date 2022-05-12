@@ -358,3 +358,32 @@ plot_spd_cameras <- function() {
   
   return(cam_buffer_plot)
 }
+
+calc_wilcox <- function() {
+  lisa_sp_clusters <- lisa_sp %>% 
+    filter(cluster %in% c("Low-Low", "High-High"))
+  
+  wilcox_results <- map(
+    gwr_ind_var, 
+    ~wilcox.test(formula(paste0(.x, "~cluster")), data = lisa_sp_clusters)
+  )
+  
+  extract_w <- function(index, results) {
+    w_value <- results[[index]][["statistic"]][["W"]]
+  }
+  
+  extract_pvalue <- function(index, results) {
+    p_value <- results[[index]][["p.value"]]
+  }
+  
+  w_values <- map(seq(1,10,1), ~extract_w(.x, wilcox_results)) %>% unlist()
+  p_values <- map(seq(1,10,1), ~extract_pvalue(.x, wilcox_results)) %>% unlist()
+  
+  wilcox_table <- tibble(
+    variables = gwr_ind_var,
+    W = w_values,
+    p_value = p_values
+  )
+  
+  return(wilcox_table)
+}
