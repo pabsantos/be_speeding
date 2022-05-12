@@ -238,6 +238,8 @@ save_lisa_plots(lisa_r2_plot, "local_r2")
 
 source("R/misc.R")
 
+tmap_options(check.and.fix = TRUE)
+
 cwb <- geobr::read_municipality(code_muni = 4106902, year = 2010)
 
 road_ctb <- fix_road_ctb()
@@ -272,3 +274,37 @@ tmap_save(
 )
 
 address_plot <- plot_address()
+
+tmap_save(
+  address_plot, "plot/address_map.png", units = "in", height = 4.5, width = 6,
+  dpi = 300
+)
+
+road_sp_cluster_plot <- plot_roads_cluster(road_ctb, sp_cluster)
+
+ggsave(
+  "plot/road_sp_cluster_map.png", road_sp_cluster_plot, width = 6, 
+  height = 4.5, device = "png"
+)
+
+od_plot <- plot_travel_demand(sp_cluster)
+
+ggsave(
+  "plot/od_plot.png",
+  plot = od_plot,
+  device = "png",
+  height = 3.5,
+  width = 5,
+  dpi = 300
+)
+
+camera_buffer_plot <- plot_spd_cameras()
+
+ggsave(
+  "plot/cam_buffer_plot.png",
+  plot = camera_buffer_plot,
+  device = "png",
+  height = 4.5,
+  width = 6,
+  dpi = 300
+)

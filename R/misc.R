@@ -245,3 +245,116 @@ plot_address <- function() {
   
   return(address_map)
 }
+
+plot_roads_cluster <- function(road_axis, cluster) {
+  ggplot() +
+    geom_sf(data = cwb, fill = "white") +
+    geom_sf(
+      data = road_axis, aes(
+        color = HIERARQUIA, size = HIERARQUIA, alpha = HIERARQUIA
+      )
+    ) +
+    theme_void() +
+    scale_color_manual(values = c("red", "darkgreen", "orange", "grey")) +
+    scale_alpha_manual(values = c(1, 0.9, 0.9, 0.6)) +
+    scale_size_manual(values = c(0.4, 0.3, 0.2, 0.1)) +
+    labs(
+      color = "Road category:",
+      alpha = "Road category:",
+      size = "Road category:",
+      fill = "SP clusters:"
+    ) +
+    theme(
+      legend.position = c(1.00, 0.2), 
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 8),
+      legend.key.height = unit(0.4, "cm")
+    ) +
+    geom_sf(
+      data = cluster,
+      lwd = 0.1,
+      alpha = 0.3,
+      color = NA,
+      aes(fill = cluster)
+    ) +
+    scale_fill_manual(values = c("#ff0004", "#0700fa"))
+}
+
+plot_travel_demand <- function(cluster) {
+  travel_demand <- read_csv2("data/deslocamento.csv") %>% 
+    janitor::clean_names() %>% 
+    mutate(
+      zona_destino = as.character(zona_destino),
+      id_taz = str_sub(zona_destino, 1, -3)
+    ) %>%
+    group_by(id_taz) %>%
+    summarise(trips = n())
+  
+  taz_trips <- taz %>%
+    left_join(travel_demand, by = "id_taz") %>% 
+    select(id_taz, trips)
+  
+  od_plot <- ggplot() +
+    geom_sf(data = taz_trips, aes(fill = trips), color = NA) +
+    geom_sf(
+      data = cluster, 
+      aes(color = cluster), 
+      fill = NA,
+      lty = "solid",
+      lwd = 0.5
+    ) +
+    theme_void() +
+    labs(fill = "Trips:", color = "SP clusters:") +
+    theme(
+      legend.position = c(1.20, 0.32),
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 9),
+      legend.key.size = unit(0.5, "cm"),
+    ) +
+    #scale_color_manual(values = c("#ff0004", "#0700fa")) +
+    scale_fill_distiller(palette = "Greys", direction = -1)
+  
+  return(od_plot)
+}
+
+plot_spd_cameras <- function() {
+  spd_cameras <- st_read("data/speed_traps.shp")
+  
+  cameras_buffer <- spd_cameras %>%
+    st_transform(crs = 31982) %>% 
+    st_buffer(dist = 200) %>% 
+    st_union()
+  
+  cam_buffer_plot <- ggplot() +
+    geom_sf(data = cwb, fill = "white") +
+    geom_sf(
+      data = road_ctb, aes(
+        color = HIERARQUIA, size = HIERARQUIA, alpha = HIERARQUIA
+      )
+    ) +
+    geom_sf(
+      data = cameras_buffer, 
+      aes(fill = "Speed cameras\nbuffer (200m)"),
+      color = NA,
+      alpha = 0.5
+    ) +
+    theme_void() +
+    scale_color_manual(values = c("red", "darkgreen", "orange", "grey")) +
+    scale_alpha_manual(values = c(1, 0.9, 0.9, 0.6)) +
+    scale_size_manual(values = c(0.4, 0.3, 0.2, 0.1)) +
+    scale_fill_manual(values = "midnightblue") +
+    labs(
+      color = "Road category:",
+      alpha = "Road category:",
+      size = "Road category:",
+      fill = ""
+    ) +
+    theme(
+      legend.position = c(1.00, 0.2), 
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 8),
+      legend.key.height = unit(0.4, "cm")
+    )
+  
+  return(cam_buffer_plot)
+}
