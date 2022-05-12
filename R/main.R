@@ -134,9 +134,9 @@ ggsave(
 spear <- taz_gwr %>% plot_spear()
 
 ggsave(
-  filename = "plot/spear.pdf",
+  filename = "plot/spear.png",
   plot = spear,
-  device = "pdf",
+  device = "png",
   width = 4.5,
   height = 3.5,
   dpi = 300

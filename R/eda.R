@@ -175,10 +175,10 @@ save_eda_plots <- function() {
   )
   
   
-  names <- paste0("plot/", names, ".pdf")
+  names <- paste0("plot/", names, ".png")
   
   save_plots <- function(plots, names) {
-    ggsave(names, plots, device = "pdf", dpi = 300, width = 6, height = 3.5)
+    ggsave(names, plots, device = "png", dpi = 300, width = 6, height = 3.5)
   }
   
   map2(plots, names, save_plots)
