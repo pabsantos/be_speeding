@@ -3,7 +3,7 @@
 *.RData
 *.Ruserdata
 *.Rproj
-data/
+/data
 input.zip
 .Rproj.user
-old/
+/old
