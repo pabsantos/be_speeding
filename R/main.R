@@ -320,5 +320,15 @@ ggsave(
 )
 
 taz_par <- extract_par_groups(taz_gwr)
-wilcox_table_par <- calc_wilcox(taz_par, gwr_ind_var[gwr_ind_var != "PAR"], "group")
+wilcox_table_par <- calc_wilcox(
+  taz_par,
+  gwr_ind_var[gwr_ind_var != "PAR"],
+  "group"
+)
 write_csv(wilcox_table_par, "table/wilcox_table_par.csv")
+
+par_hist <- plot_par_hist()
+ggsave(
+  "plot/par_hist.png", par_hist, width = 6, height = 3.5, device = "png"
+)
+

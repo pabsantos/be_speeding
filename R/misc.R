@@ -451,4 +451,42 @@ extract_par_groups <- function(data) {
     filter(group != "no_group")
 }
 
+plot_par_hist <- function() {
+  selected_vars <- wilcox_table_par %>% 
+    filter(p_value < 0.05) %>% 
+    pull(variables)
+  
+  taz_par %>% 
+    select(all_of(selected_vars), group) %>% 
+    pivot_longer(-group, names_to = "var", values_to = "values") %>%
+    mutate(
+      var = case_when(
+        var == "PD" ~ "PD [inhab/km²]",
+        var == "SND" ~ "SND [km/km²]",
+        var == "BSD" ~ "BSD [no./km]",
+        var == "DIS" ~ "DIS [no./km]",
+        var == "TSD" ~ "TSD [no./km]",
+        TRUE ~ "LDI"
+      ),
+      group = if_else(
+        group == "low", 
+        paste0(
+          "low (n=",
+          taz_par$group[taz_par$group == "low"] %>% length(),
+          ")"
+        ),
+        paste0(
+          "high (n=",
+          taz_par$group[taz_par$group == "high"] %>% length(),
+          ")"
+        )
+      )
+    ) %>% 
+    ggplot(aes(x = group, y = values, fill = group)) +
+    geom_boxplot(lwd = 0.2, outlier.size = 0.1) +
+    facet_wrap(~var, scales = "free_y") +
+    theme_bw(base_size = 8) +
+    theme(legend.position = "none") +
+    labs(y = "Values", x = "PAR group")
+}
   
