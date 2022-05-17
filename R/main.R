@@ -77,7 +77,7 @@ ggsave(
   filename = "plot/taz_dist.png", 
   dist_map,
   device = "png",
-  height = 3.5,
+  height = 4.5,
   width = 3.5,
   dpi = 300
 )
@@ -331,4 +331,3 @@ par_hist <- plot_par_hist()
 ggsave(
   "plot/par_hist.png", par_hist, width = 6, height = 3.5, device = "png"
 )
-

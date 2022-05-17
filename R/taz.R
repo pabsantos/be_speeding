@@ -270,7 +270,7 @@ plot_dist_map <- function(taz_data) {
     theme_void() +
     labs(fill = "Traveled\ndistances [km]:\n(Valid time)") +
     theme(
-      legend.position = c(1.06, 0.24),
+      legend.position = c(0.98, 0.24),
       legend.text = element_text(size = 8),
       legend.title = element_text(size = 9),
       legend.key.size = unit(0.5, "cm")
