@@ -226,6 +226,7 @@ add_dsc <- function(taz_data) {
 
 add_spd_exp_dist <- function(taz_data) {
   taz_distances <- drivers_valid_lines %>% 
+    st_transform(crs = 31982) %>%
     mutate(
       DISTANCE_TYPE = case_when(
         as.numeric(LIMITE_VEL) - SPD_KMH < 10 & 
@@ -236,8 +237,8 @@ add_spd_exp_dist <- function(taz_data) {
       ),
       LENGTH = st_length(wkt_lines)
     ) %>% 
-    st_transform(crs = 31982) %>% 
-    st_join(taz_data["id_taz"]) %>% 
+    st_join(taz_data["id_taz"]) %>%
+    distinct(ID, TIME_ACUM, .keep_all = TRUE) %>% 
     group_by(id_taz, DISTANCE_TYPE) %>% 
     summarise(LENGTH = sum(LENGTH)) %>% 
     st_drop_geometry() %>% 
@@ -270,7 +271,7 @@ plot_dist_map <- function(taz_data) {
     theme_void() +
     labs(fill = "Traveled\ndistances [km]:\n(Valid time)") +
     theme(
-      legend.position = c(0.98, 0.24),
+      legend.position = c(0.97, 0.24),
       legend.text = element_text(size = 8),
       legend.title = element_text(size = 9),
       legend.key.size = unit(0.5, "cm")

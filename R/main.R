@@ -66,7 +66,7 @@ if (file.exists("data/taz_complete.gpkg")) {
     add_spd_exp_dist() %>% 
     remove_na_unit()
   
-  st_write(taz, "data/taz_complete.gpkg")
+  st_write(taz, "data/taz_complete.gpkg", append = FALSE)
   
   rm(census_data)
 }
@@ -273,12 +273,12 @@ tmap_save(
   units = "in", height = 4.5, width = 6, dpi = 300
 )
 
-address_plot <- plot_address()
-
-tmap_save(
-  address_plot, "plot/address_map.png", units = "in", height = 4.5, width = 6,
-  dpi = 300
-)
+# address_plot <- plot_address()
+# 
+# tmap_save(
+#   address_plot, "plot/address_map.png", units = "in", height = 4.5, width = 6,
+#   dpi = 300
+# )
 
 road_sp_cluster_plot <- plot_roads_cluster(road_ctb, sp_cluster)
 
