@@ -162,6 +162,8 @@ gwr_model_results <- calc_gwr(taz_gwr, gwr_ind_var)
 
 gwr_diag_table <- extract_gwr_diag(gwr_model_results)
 
+write_csv(gwr_diag_table, "table/gwr_diag_table.csv")
+
 mmc_results <- gwr_model_results %>% calc_moran()
 
 # Selecting best model -- manual process, check diagnostic (WIP)
