@@ -313,7 +313,11 @@ ggsave(
 
 taz_sp <- extract_sp_groups(lisa_sp)
 wilcox_table <- calc_wilcox(taz_sp, gwr_ind_var, "cluster")
-write_csv(wilcox_table, "table/wilcox_table.csv")
+write_csv(
+  wilcox_table %>% 
+    mutate(p_value = format(p_value, digits = 1, scientific = FALSE)), 
+  "table/wilcox_table.csv"
+)
 
 wilcox_hist <- plot_wilcox_hist()
 
@@ -327,9 +331,15 @@ wilcox_table_par <- calc_wilcox(
   gwr_ind_var[gwr_ind_var != "PAR"],
   "group"
 )
-write_csv(wilcox_table_par, "table/wilcox_table_par.csv")
+write_csv(
+  wilcox_table_par %>% 
+    mutate(p_value = format(p_value, digits = 1, scientific = FALSE)), 
+  "table/wilcox_table_par.csv"
+)
 
 par_hist <- plot_par_hist()
 ggsave(
   "plot/par_hist.png", par_hist, width = 6, height = 3.5, device = "png"
 )
+
+shapiro_test <- calc_shapiro(taz_gwr)

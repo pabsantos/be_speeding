@@ -343,3 +343,22 @@ save_var_maps <- function(var_maps) {
   
   map2(var_maps, var, save_maps)
 }
+
+calc_shapiro <- function(taz) {
+  taz_shapiro <- taz %>% 
+    st_drop_geometry()
+  
+  shapiro_results <- map(taz_shapiro, shapiro.test)
+  
+  extract_shap_results <- function(shap_results, var) {
+    p_value <- shap_results[[var]][["p.value"]]
+    statistic <- shap_results[[var]][["statistic"]]
+    tibble(
+      var = var,
+      statistic = statistic, 
+      pvalue = format(p_value, scientific = FALSE, digits = 1))
+  }
+  
+  map(names(taz_shapiro), ~extract_shap_results(shapiro_results, .x)) %>% 
+    reduce(bind_rows)
+}
