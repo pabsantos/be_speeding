@@ -279,7 +279,7 @@ plot_sp <- function(taz_gwr_data) {
     geom_sf(data = taz_gwr_data, aes(fill = SP), color = NA) +
     theme_void() +
     labs(fill = "SP") +
-    scale_fill_distiller(palette = "Blues", direction = -1) +
+    scale_fill_viridis_c() +
     theme(
       legend.position = c(0.93, 0.21),
       legend.text = element_text(size = 8),
@@ -288,7 +288,7 @@ plot_sp <- function(taz_gwr_data) {
     )
 }
 
-calc_moran_sp <- function() {
+calc_moran_sp <- function(gwr_chosen_model) {
   nb <- poly2nb(gwr_chosen_model[["SDF"]], queen = TRUE)
   lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
   moran.mc(gwr_chosen_model[["SDF"]]$y, lw, nsim = 999, alternative = "greater")

@@ -489,4 +489,19 @@ plot_par_hist <- function() {
     theme(legend.position = "none") +
     labs(y = "Values", x = "PAR group")
 }
-  
+
+driver_taz <- drivers_valid_lines %>% 
+  select(DRIVER, ID, TIME_ACUM) %>% 
+  st_transform(crs = 31982) %>% 
+  st_join(taz["id_taz"]) %>% 
+  distinct(ID, TIME_ACUM, .keep_all = TRUE) %>% 
+  st_drop_geometry() %>% 
+  group_by(id_taz) %>% 
+  summarise(n_driver = n_distinct(DRIVER)) %>% 
+  drop_na(id_taz)
+
+taz_drivers <- taz %>% 
+  left_join(driver_taz, by = "id_taz") %>% 
+  mutate(n_driver = ifelse(is.na(n_driver), 0, n_driver))
+
+qtm(taz_drivers, fill = "n_driver")

@@ -215,7 +215,7 @@ ggsave(
   device = "png"
 )
 
-moran_sp_results <- calc_moran_sp()
+moran_sp_results <- calc_moran_sp(gwr_chosen_model)
 
 # LISA --------------------------------------------------------------------
 
@@ -343,3 +343,19 @@ ggsave(
 )
 
 shapiro_test <- calc_shapiro(taz_gwr)
+
+# matriz tests ------------------------------------------------------------
+
+# source("R/matriz.R")
+# 
+# taz_matriz <- filter_matriz(taz)
+# 
+# matriz_gwr <- calc_gwr(taz_matriz, gwr_ind_var)
+# 
+# matriz_gwr_diag <- extract_gwr_diag(matriz_gwr)
+# 
+# matriz_gwr_mmc <- calc_moran(matriz_gwr)
+# 
+# calc_moran_sp(matriz_gwr[[1]])
+# 
+# calc_lisa("SP", taz_matriz) %>% plot_lisa(var = "SP")

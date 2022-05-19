@@ -71,9 +71,13 @@ add_par <- function(taz_data) {
   url <- "https://ippuc.org.br/geodownloads/SHAPES_SIRGAS/EIXO_RUA_SIRGAS.zip"
   ippuc_axis <- nds_download_sf(url)
   
+  # ippuc_axis <- ippuc_axis %>% 
+  #   mutate(new_id = seq(1, nrow(ippuc_axis)))
+  
   taz_par <- ippuc_axis %>% 
-    st_join(taz_data["id_taz"]) %>% 
-    filter(HIERARQUIA != "0") %>% 
+    st_join(taz_data["id_taz"]) %>%
+    distinct(new_id, .keep_all = TRUE) %>% 
+    # filter(HIERARQUIA != "0") %>% 
     mutate(length = units::set_units(st_length(geometry), km)) %>% 
     group_by(id_taz, HIERARQUIA) %>% 
     summarise(road_length = sum(length)) %>%
@@ -270,6 +274,7 @@ plot_dist_map <- function(taz_data) {
     geom_sf(aes(fill = DIST_TOTAL), color = NA) +
     theme_void() +
     labs(fill = "Traveled\ndistances [km]:\n(Valid time)") +
+    scale_fill_viridis_c() +
     theme(
       legend.position = c(0.97, 0.24),
       legend.text = element_text(size = 8),
