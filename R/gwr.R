@@ -279,7 +279,7 @@ plot_sp <- function(taz_gwr_data) {
     geom_sf(data = taz_gwr_data, aes(fill = SP), color = NA) +
     theme_void() +
     labs(fill = "SP") +
-    scale_fill_distiller(palette = "Oranges", direction = 1) +
+    scale_fill_distiller(palette = "Blues", direction = -1) +
     theme(
       legend.position = c(0.93, 0.21),
       legend.text = element_text(size = 8),
