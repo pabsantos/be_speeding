@@ -490,18 +490,38 @@ plot_par_hist <- function() {
     labs(y = "Values", x = "PAR group")
 }
 
-driver_taz <- drivers_valid_lines %>% 
-  select(DRIVER, ID, TIME_ACUM) %>% 
-  st_transform(crs = 31982) %>% 
-  st_join(taz["id_taz"]) %>% 
-  distinct(ID, TIME_ACUM, .keep_all = TRUE) %>% 
-  st_drop_geometry() %>% 
-  group_by(id_taz) %>% 
-  summarise(n_driver = n_distinct(DRIVER)) %>% 
-  drop_na(id_taz)
+arrange_drivers_taz <- function(driver, taz) {
+  driver_taz <- driver %>% 
+    select(DRIVER, ID, TIME_ACUM) %>% 
+    st_transform(crs = 31982) %>% 
+    st_join(taz["id_taz"]) %>% 
+    distinct(ID, TIME_ACUM, .keep_all = TRUE) %>% 
+    st_drop_geometry() %>% 
+    group_by(id_taz) %>% 
+    summarise(n_driver = n_distinct(DRIVER)) %>% 
+    drop_na(id_taz)
+  
+  taz_drivers <- taz %>% 
+    left_join(driver_taz, by = "id_taz") %>% 
+    mutate(n_driver = ifelse(is.na(n_driver), 0, n_driver))
+  
+  return(taz_drivers)
+}
 
-taz_drivers <- taz %>% 
-  left_join(driver_taz, by = "id_taz") %>% 
-  mutate(n_driver = ifelse(is.na(n_driver), 0, n_driver))
+plot_drivers_taz <- function(taz) {
+  tm_shape(taz) +
+    tm_borders(col = "grey20", lwd = 0.2) +
+    tm_fill(
+      col = "n_driver",
+      style = "jenks",
+      title = "Quantity of drivers\n(valid time)") +
+    tm_layout(frame = FALSE) +
+    tm_legend(
+      legend.position = c(0.80, 0.01),
+      legend.title.size = 0.7, 
+      legend.text.size = 0.6
+    )
+}
+
 
 qtm(taz_drivers, fill = "n_driver")

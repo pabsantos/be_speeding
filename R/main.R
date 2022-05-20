@@ -344,6 +344,19 @@ ggsave(
 
 shapiro_test <- calc_shapiro(taz_gwr)
 
+taz_drivers <- arrange_drivers_taz(drivers_valid_lines, taz)
+
+taz_drivers_plot <- plot_drivers_taz(taz_drivers)
+
+tmap_save(
+  taz_drivers_plot,
+  "plot/taz_drivers.png",
+  units = "in",
+  width = 4,
+  height = 3.5
+)
+
+
 # matriz tests ------------------------------------------------------------
 
 # source("R/matriz.R")
