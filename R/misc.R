@@ -522,6 +522,3 @@ plot_drivers_taz <- function(taz) {
       legend.text.size = 0.6
     )
 }
-
-
-qtm(taz_drivers, fill = "n_driver")
