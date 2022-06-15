@@ -53,10 +53,10 @@ plot_hotd_dist <- function(driver_data) {
 plot_hotd_trips <- function(driver_data) {
   driver_data %>% 
     group_by(ID) %>% 
-    summarise(start = min(hotd)) %>% 
-    group_by(start) %>% 
-    summarise(n = n_distinct(ID)) %>% 
-    ggplot(aes(start, n)) +
+    slice_head(n = 1) %>% 
+    group_by(hotd) %>% 
+    summarise(n = n()) %>% 
+    ggplot(aes(hotd, n)) +
     geom_col() +
     scale_x_continuous(breaks = seq(0,23,1), minor_breaks = NULL) +
     scale_y_continuous(minor_breaks = NULL) +
@@ -173,7 +173,6 @@ save_eda_plots <- function() {
     "dotw_dist", "dotw_trips", "dotw_sp", "hotd_dist", "hotd_trips", "hotd_sp",
     "richards_sp"
   )
-  
   
   names <- paste0("plot/", names, ".png")
   
