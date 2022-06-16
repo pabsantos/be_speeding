@@ -7,14 +7,14 @@ fix_road_ctb <- function() {
     filter(HIERARQUIA %in% c("1", "2", "3", "4")) %>% 
     mutate(
       HIERARQUIA = case_when(
-        HIERARQUIA == "1" ~ "Rapid transit",
+        HIERARQUIA == "1" ~ "Fast transit",
         HIERARQUIA == "2" ~ "Arterial", 
         HIERARQUIA == "3" ~ "Collector",
         HIERARQUIA == "4" ~ "Local",
         TRUE ~ NA_character_),
       HIERARQUIA = factor(
         HIERARQUIA, levels = c(
-          "Rapid transit", "Arterial", "Collector", "Local"
+          "Fast transit", "Arterial", "Collector", "Local"
         )
       )
     )
