@@ -356,6 +356,11 @@ tmap_save(
   height = 3.5
 )
 
+cohend_results <- calc_cohend()
+
+dsc_hist <- plot_dsc_hist()
+
+ggsave("plot/dsc_hist.png", dsc_hist, width = 4, height = 3, device = "png")
 
 # matriz tests ------------------------------------------------------------
 

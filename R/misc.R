@@ -522,3 +522,37 @@ plot_drivers_taz <- function(taz) {
       legend.text.size = 0.6
     )
 }
+
+calc_cohend <- function() {
+  low <- taz_par %>% filter(group == "low") %>% pull(DSC)
+  high <- taz_par %>% filter(group == "high") %>% pull(DSC)
+  
+  effsize::cohen.d(high, low)
+}
+
+plot_dsc_hist <- function() {
+  taz_par <- taz_par %>%
+    mutate(
+      group = if_else(
+        group == "low", 
+        paste0(
+          "low (n=",
+          taz_par$group[taz_par$group == "low"] %>% length(),
+          ")"
+        ),
+        paste0(
+          "high (n=",
+          taz_par$group[taz_par$group == "high"] %>% length(),
+          ")"
+        )
+      )
+    )
+    
+  ggplot(taz_par, aes(x = group, y = DSC, fill = group)) +
+    geom_boxplot() +
+    geom_boxplot(lwd = 0.2, outlier.size = 0.1) +
+    theme_bw(base_size = 10) +
+    theme(legend.position = "none") +
+    labs(y = "DSC (no./km)", x = "PAR group")
+}
+
